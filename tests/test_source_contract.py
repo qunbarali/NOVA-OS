@@ -8,7 +8,7 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-class NovaAlpha02Tests(unittest.TestCase):
+class NovaAlpha03Tests(unittest.TestCase):
     def test_dual_board_build_script(self):
         script = read("scripts/build-all.ps1")
         self.assertIn("Board = 'pico'", script)
@@ -24,6 +24,19 @@ class NovaAlpha02Tests(unittest.TestCase):
         self.assertIn("NOVA_TASK_SLEEPING", source)
         self.assertIn("scan_start", source)
         self.assertIn("nova_task_current_id", source)
+
+    def test_priority_fault_and_critical_section_foundations(self):
+        header = read("include/nova/task.h")
+        source = read("src/kernel/task.c")
+        critical_h = read("include/nova/critical.h")
+        critical_c = read("src/kernel/critical.c")
+        self.assertIn("nova_task_set_priority", header)
+        self.assertIn("NOVA_TASK_FAULTED", source)
+        self.assertIn("scheduler_active", source)
+        self.assertIn("nova_task_fault_count", header)
+        self.assertIn("nova_critical_enter", critical_h)
+        self.assertIn("save_and_disable_interrupts", critical_c)
+        self.assertIn("restore_interrupts", critical_c)
 
     def test_pool_has_fixed_capacity(self):
         header = read("include/nova/memory.h")
