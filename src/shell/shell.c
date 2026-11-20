@@ -9,9 +9,10 @@
 #include "nova/task.h"
 #include "nova/memory.h"
 #include "nova/crash.h"
+#include "nova/device.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "1.1.0"
+#define NOVA_VERSION "1.2.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
@@ -70,7 +71,7 @@ static void print_tasks(void) {
 
 static void execute(const char *line) {
     if (!strcmp(line, "help")) {
-        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, faults, crash, uptime, task demo, task stop, led on, led off, reboot\n");
+        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, faults, crash, devices, device led0 on/off, uptime, task demo, task stop, led on, led off, reboot\n");
     } else if (!strcmp(line, "version")) {
         printf("NOVA Kernel Alpha %s (development)\n", NOVA_VERSION);
     } else if (!strcmp(line, "system")) {
@@ -100,6 +101,20 @@ static void execute(const char *line) {
                    (unsigned long)records[i].sequence, (unsigned long)records[i].tick_ms,
                    (unsigned)records[i].task_id, records[i].task_name, reason);
         }
+    } else if (!strcmp(line, "devices")) {
+        nova_device_t devices[NOVA_DEVICE_MAX];
+        size_t count = nova_device_snapshot(devices, NOVA_DEVICE_MAX);
+        printf("Devices: %lu/%u\\n", (unsigned long)count, (unsigned)NOVA_DEVICE_MAX);
+        for (size_t i = 0u; i < count; ++i)
+            printf("  #%u %-12s %-8s caps=0x%02lx\\n", (unsigned)devices[i].id,
+                   devices[i].name, nova_device_class_name(devices[i].device_class),
+                   (unsigned long)devices[i].capabilities);
+    } else if (!strcmp(line, "device led0 on")) {
+        const uint8_t value = 1u;
+        nova_shell_write(nova_device_write("led0", &value, sizeof(value)) == 1 ? "led0 on\\n" : "device write failed\\n");
+    } else if (!strcmp(line, "device led0 off")) {
+        const uint8_t value = 0u;
+        nova_shell_write(nova_device_write("led0", &value, sizeof(value)) == 1 ? "led0 off\\n" : "device write failed\\n");
     } else if (!strcmp(line, "crash")) {
         nova_crash_record_t record;
         if (nova_crash_read(&record)) {
