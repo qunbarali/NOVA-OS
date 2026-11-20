@@ -1,5 +1,8 @@
 #include "nova/task.h"
 #include <string.h>
+#ifndef NOVA_HOST_TEST
+#include "pico/multicore.h"
+#endif
 #define NOVA_STACK_GUARD_WORD 0x4E4F5641u
 #define NOVA_STACK_FILL_WORD 0xA5A5A5A5u
 #define NOVA_STACK_GUARD_WORDS 4u
@@ -147,7 +150,7 @@ void nova_task_yield(void) {
     task->info.state = NOVA_TASK_READY; switch_current_to_scheduler();
 }
 bool nova_task_prepare_block(uint32_t timeout_ms) {
-    if (current_task >= NOVA_TASK_MAX) return false;
+    if (nova_task_current_id() == NOVA_TASK_ID_INVALID) return false;
     task_control_t *task = &tasks[current_task];
     if (task->info.state != NOVA_TASK_RUNNING) return false;
     __atomic_store_n(&wake_pending[current_task], 0u, __ATOMIC_RELAXED);
@@ -156,7 +159,7 @@ bool nova_task_prepare_block(uint32_t timeout_ms) {
     return true;
 }
 void nova_task_commit_block(void) {
-    if (current_task < NOVA_TASK_MAX && tasks[current_task].info.state == NOVA_TASK_BLOCKED)
+    if (nova_task_current_id() != NOVA_TASK_ID_INVALID && tasks[current_task].info.state == NOVA_TASK_BLOCKED)
         switch_current_to_scheduler();
 }
 bool nova_task_wake(nova_task_id_t id) {
@@ -173,7 +176,12 @@ void nova_task_sleep_current(uint32_t delay_ms) {
     task->info.wake_at_ms = scheduler_now_ms + delay_ms;
     task->info.state = NOVA_TASK_SLEEPING; switch_current_to_scheduler();
 }
-nova_task_id_t nova_task_current_id(void) { return current_task; }
+nova_task_id_t nova_task_current_id(void) {
+#ifndef NOVA_HOST_TEST
+    if (get_core_num() != 0u) return NOVA_TASK_ID_INVALID;
+#endif
+    return current_task;
+}
 void nova_task_scheduler_poll(uint32_t now_ms) {
     if (scheduler_active) return;
     scheduler_active = true; scheduler_now_ms = now_ms;
