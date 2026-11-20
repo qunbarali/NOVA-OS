@@ -54,11 +54,13 @@ static void print_system(void) {
 static void print_tasks(void) {
     nova_task_info_t info[NOVA_TASK_MAX];
     size_t count = nova_task_snapshot(info, NOVA_TASK_MAX);
-    printf("Tasks: %lu/%u; dispatches: %lu\n", (unsigned long)count,
-           (unsigned)NOVA_TASK_MAX, (unsigned long)nova_task_dispatch_count());
+    printf("Tasks: %lu/%u; dispatches: %lu; faults: %lu\n", (unsigned long)count,
+           (unsigned)NOVA_TASK_MAX, (unsigned long)nova_task_dispatch_count(),
+           (unsigned long)nova_task_fault_count());
     for (size_t i = 0u; i < count; ++i) {
-        printf("  #%u %-12s %-8s runs=%lu\n", (unsigned)info[i].id, info[i].name,
-               task_state_name(info[i].state), (unsigned long)info[i].runs);
+        printf("  #%u %-12s %-8s prio=%u runs=%lu\n", (unsigned)info[i].id, info[i].name,
+               task_state_name(info[i].state), (unsigned)info[i].priority,
+               (unsigned long)info[i].runs);
     }
 }
 
