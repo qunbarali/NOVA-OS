@@ -8,9 +8,10 @@
 #include "nova/board.h"
 #include "nova/task.h"
 #include "nova/memory.h"
+#include "nova/crash.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "0.7.0"
+#define NOVA_VERSION "0.8.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
@@ -68,7 +69,7 @@ static void print_tasks(void) {
 
 static void execute(const char *line) {
     if (!strcmp(line, "help")) {
-        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, faults, uptime, task demo, task stop, led on, led off, reboot\n");
+        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, faults, crash, uptime, task demo, task stop, led on, led off, reboot\n");
     } else if (!strcmp(line, "version")) {
         printf("NOVA Kernel Alpha %s (development)\n", NOVA_VERSION);
     } else if (!strcmp(line, "system")) {
@@ -97,6 +98,21 @@ static void execute(const char *line) {
                    (unsigned long)records[i].sequence, (unsigned long)records[i].tick_ms,
                    (unsigned)records[i].task_id, records[i].task_name, reason);
         }
+    } else if (!strcmp(line, "crash")) {
+        nova_crash_record_t record;
+        if (nova_crash_read(&record)) {
+            printf("Previous HardFault: PC=0x%08lx LR=0x%08lx xPSR=0x%08lx\\n",
+                   (unsigned long)record.pc, (unsigned long)record.lr,
+                   (unsigned long)record.xpsr);
+            printf("EXC_RETURN=0x%08lx frame=0x%08lx R0=0x%08lx R1=0x%08lx\\n",
+                   (unsigned long)record.exc_return, (unsigned long)record.frame_address,
+                   (unsigned long)record.r0, (unsigned long)record.r1);
+        } else {
+            nova_shell_write("No retained HardFault record.\\n");
+        }
+    } else if (!strcmp(line, "crash clear")) {
+        nova_crash_clear();
+        nova_shell_write("Retained crash record cleared.\\n");
     } else if (!strcmp(line, "uptime")) {
         printf("%lu ms\n", (unsigned long)nova_uptime_ms());
     } else if (!strcmp(line, "task demo")) {
