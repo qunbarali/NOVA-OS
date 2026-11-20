@@ -8,7 +8,7 @@ if(NOT PICO_SDK_PATH)
 endif()
 
 include(pico_sdk_import.cmake)
-project(nova_os VERSION 0.2.0 LANGUAGES C CXX ASM)
+project(nova_os VERSION 0.3.0 LANGUAGES C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
