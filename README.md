@@ -1,10 +1,11 @@
-# NOVA OS — Kernel Alpha 0.3.0
+# NOVA OS — Kernel Alpha 0.5.0
 
-NOVA is an independently designed embedded operating system project. Alpha 0.3 adds priority-aware cooperative dispatch, task fault containment and core-local interrupt critical sections for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
+NOVA is an independently designed embedded operating system project. Alpha 0.5 adds resumable cooperative task contexts on independent stacks, alongside priority-aware dispatch and task fault containment for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
-## Alpha 0.3 features
-- Eight-slot cooperative state-machine scheduler with priority-ordered dispatch and round-robin tie-breaking
-- Task creation, suspension, resumption, termination and sleep
+## Alpha 0.5 features
+- Eight-slot resumable cooperative scheduler with priority-ordered dispatch and round-robin tie-breaking
+- Task creation, suspension, resumption, termination, cooperative yield and resumable sleep
+- Per-task saved stack pointers and architecture-specific Cortex-M0+ / Cortex-M33 context switches
 - Task state, priority, dispatch and fault diagnostics
 - Invalid task callback results are isolated as FAULTED slots
 - Core-local interrupt save/restore critical-section API for short core-0 sections
@@ -54,6 +55,6 @@ python -m unittest discover -s tests -v
 These checks are not a substitute for compiling both firmware targets or testing on physical boards.
 
 ## Important architecture limitations
-Alpha 0.2 uses cooperative state-machine tasks on core 0. Tasks share the core-0 stack; independent task stacks and preemptive context switching are not implemented. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded, non-blocking and single-core only. No process isolation or general-purpose heap exists yet.
+Alpha 0.5 uses cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded, non-blocking and single-core only. No process isolation or general-purpose heap exists yet.
 
-See [Alpha 0.3 notes](docs/ALPHA_0_3.md) and [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
+See [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md) and [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).

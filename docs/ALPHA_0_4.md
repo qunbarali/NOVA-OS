@@ -20,10 +20,10 @@ The 512-byte stack size is a development default, not a universal fit for arbitr
 
 The checked-in host scheduler test uses a host-only stack-switch stub and validates scheduler behavior and stack metadata. The two assembly ports still require the manual GitHub Actions cross-build and physical RP2040 and RP2350 board tests. No hardware validation is implied by this source milestone.
 
-## Still required
+## Follow-on work (Alpha 0.5 and later)
 
-1. Resumable cooperative context save/restore with persistent per-task execution state.
-2. Architecture exception frames and safe fault entry on Cortex-M0+ and Cortex-M33.
-3. Stronger stack guard strategy and stack-overflow crash records.
-4. Cross-core synchronization and explicit ownership before core 1 accesses kernel services.
-5. Preemption only after context preservation, interrupt nesting, timing and fault recovery are proven on hardware.
+- Resumable cooperative context switching on separate task stacks was added in Alpha 0.5. See [Alpha 0.5 notes](ALPHA_0_5.md).
+- Architecture exception frames and safe fault entry on Cortex-M0+ and Cortex-M33 remain outstanding.
+- Stronger stack guard strategy and stack-overflow crash records remain outstanding.
+- Cross-core synchronization and explicit ownership before core 1 accesses kernel services remain outstanding.
+- Preemption must wait until context preservation, interrupt nesting, timing and fault recovery are proven on hardware.

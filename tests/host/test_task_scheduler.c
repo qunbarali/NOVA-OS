@@ -3,11 +3,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-void nova_arch_call_on_stack(uintptr_t stack_top, void (*function)(void *), void *argument) {
-    (void)stack_top;
-    function(argument);
-}
-
 static unsigned task_a_runs;
 static unsigned task_b_runs;
 static unsigned task_exit_runs;

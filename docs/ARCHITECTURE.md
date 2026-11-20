@@ -12,16 +12,16 @@ NOVA is an independently designed operating system, not a Linux, Android, Window
 - Interfaces are versioned; optional hardware is exposed through capability discovery.
 - Recovery must remain possible if a NOVA image is damaged.
 
-## Current Alpha 0.4 execution model
+## Current Alpha 0.5 execution model
 - Core 0 initializes the board/kernel and owns the USB CDC command shell.
 - Core 0 runs an eight-slot cooperative state-machine scheduler from the shell's polling loop. Ready tasks are dispatched by numeric priority (lower value first); equal-priority tasks use rotating scan order.
 - A repeating 1 ms hardware timer callback increments an atomic system tick counter.
 - Core 1 runs a diagnostic heartbeat service; it is not a second scheduler.
-- Task entry callbacks must perform bounded work and return; sleeping tasks are resumed using wrap-safe millisecond deadlines.
+- Task callbacks run on persistent per-task stacks. They may yield or sleep and resume at the instruction following that call; returning NOVA_TASK_AGAIN rebuilds the stack and restarts the callback, while NOVA_TASK_EXIT terminates it.
 - Invalid task callback return values move that task to a FAULTED state; the slot remains inspectable and must be explicitly terminated.
-- Each task owns a fixed 512-byte, 8-byte-aligned stack. Each callback invocation runs on its task's stack through a per-architecture stack-call routine (Cortex-M0+ or Cortex-M33), then returns to the scheduler stack.
+- Each task owns a fixed 512-byte, 8-byte-aligned stack. Architecture-specific context-switch routines save and restore task registers and PSP state on Cortex-M0+ and Cortex-M33. Task code runs on PSP, while a dedicated 1 KiB MSP stack serves interrupt handlers during task execution.
 - Four guard words and a fill-pattern high-water estimate are maintained per task. Guard corruption marks the task FAULTED.
-- This is per-invocation stack isolation, not a resumable thread context switch: callback call chains do not persist between polls. Tasks remain cooperative state-machine callbacks; preemption and process isolation are not implemented.
+- Task call chains persist across cooperative yields and sleeps. Scheduling remains non-preemptive: a task that does not yield, sleep, or return can monopolize core 0. Tasks share one address space and privilege level; process isolation is not implemented.
 - A fixed memory pool provides eight 32-byte blocks; it is not a general-purpose heap.
 - IPC currently provides an eight-entry, 32-byte-per-message queue, task-owner-tracked non-blocking mutexes and event flags.
 - Core-local interrupt save/restore critical sections are available for short core-0 sections. They do not disable interrupts on the other core and are not an SMP lock.
@@ -32,7 +32,7 @@ NOVA is an independently designed operating system, not a Linux, Android, Window
 
 ## Planned kernel services
 1. Boot and board identification
-2. Resumable scheduler context switching and stronger stack guards
+2. Exception frames, fault entry and stronger stack guards
 3. Interrupt-safe critical sections and priority-aware synchronization
 4. General memory allocator and per-task resource accounting
 5. Blocking IPC, wait queues and event subscriptions
