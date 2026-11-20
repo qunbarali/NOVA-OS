@@ -61,7 +61,7 @@ static void print_tasks(void) {
         printf("  #%u %-12s %-8s prio=%u runs=%lu\n", (unsigned)info[i].id, info[i].name,
                task_state_name(info[i].state), (unsigned)info[i].priority,
                (unsigned long)info[i].runs);
-        printf("     stack=%u/%u bytes\\n", (unsigned)info[i].stack_used_bytes,
+        printf("     stack=%u/%u bytes\n", (unsigned)info[i].stack_used_bytes,
                (unsigned)info[i].stack_size_bytes);
     }
 }
