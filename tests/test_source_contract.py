@@ -8,7 +8,7 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-class NovaAlpha06Tests(unittest.TestCase):
+class NovaAlpha07Tests(unittest.TestCase):
     def test_dual_board_build_script(self):
         script = read("scripts/build-all.ps1")
         self.assertIn("Board = 'pico'", script)
@@ -34,6 +34,13 @@ class NovaAlpha06Tests(unittest.TestCase):
         self.assertIn("NOVA_TASK_FAULTED", source)
         self.assertIn("scheduler_active", source)
         self.assertIn("nova_task_fault_count", header)
+        self.assertIn("nova_task_fault_snapshot", header)
+        self.assertIn("NOVA_FAULT_LOG_CAPACITY 8u", header)
+        self.assertIn("record_task_fault", source)
+        self.assertIn("NOVA_FAULT_STACK_GUARD", source)
+        self.assertIn("NOVA_FAULT_INVALID_TASK_RESULT", source)
+        self.assertIn("NOVA_FAULT_TASK_RETURNED_RUNNING", source)
+        self.assertIn(chr(34) + "faults" + chr(34), shell)
         self.assertIn("nova_critical_enter", critical_h)
         self.assertIn("save_and_disable_interrupts", critical_c)
         self.assertIn("restore_interrupts", critical_c)
@@ -62,7 +69,7 @@ class NovaAlpha06Tests(unittest.TestCase):
         self.assertIn("nova_system_ticks()", shell)
         self.assertIn("nova_kernel_timer_ready()", shell)
         self.assertIn("nova_task_fault_count()", shell)
-        self.assertIn('NOVA_VERSION "0.6.0"', shell)
+        self.assertIn('NOVA_VERSION "0.7.0"', shell)
         self.assertIn("stack_used_bytes", shell)
         self.assertIn("(high-water)", shell)
 
@@ -89,7 +96,7 @@ class NovaAlpha06Tests(unittest.TestCase):
         self.assertIn("src/kernel/memory.c", cmake)
         self.assertIn("src/kernel/ipc.c", cmake)
         self.assertIn("src/kernel/critical.c", cmake)
-        self.assertIn("VERSION 0.6.0", cmake)
+        self.assertIn("VERSION 0.7.0", cmake)
         self.assertIn("set(CMAKE_C_EXTENSIONS ON)", cmake)
         self.assertIn("src/arch/armv6m/call_on_stack.S", cmake)
         self.assertIn("src/arch/armv8m/call_on_stack.S", cmake)
