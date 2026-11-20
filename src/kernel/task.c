@@ -25,6 +25,7 @@ static nova_task_id_t current_task = NOVA_TASK_ID_INVALID;
 static uint8_t next_slot;
 static uint32_t dispatches, faults, scheduler_now_ms;
 static bool scheduler_active;
+static volatile uint8_t wake_pending[NOVA_TASK_MAX];
 static nova_fault_record_t fault_log[NOVA_FAULT_LOG_CAPACITY];
 static uint32_t fault_sequence;
 static size_t fault_log_count;
@@ -94,6 +95,7 @@ void nova_task_init(void) {
     memset(tasks, 0, sizeof(tasks)); current_task = NOVA_TASK_ID_INVALID; next_slot = 0u;
     dispatches = 0u; faults = 0u; scheduler_now_ms = 0u; scheduler_active = false;
     memset(fault_log, 0, sizeof(fault_log)); fault_sequence = 0u; fault_log_count = 0u;
+    memset((void *)wake_pending, 0, sizeof(wake_pending));
 #ifndef NOVA_HOST_TEST
     scheduler_sp = 0u;
 #endif
@@ -107,7 +109,7 @@ nova_task_id_t nova_task_create(const char *name, nova_task_entry_t entry, void 
         size_t length = strlen(name); if (length > NOVA_TASK_NAME_MAX) length = NOVA_TASK_NAME_MAX;
         memcpy(task->info.name, name, length); task->info.name[length] = '\0';
         task->info.state = NOVA_TASK_READY; task->info.priority = NOVA_TASK_PRIORITY_DEFAULT;
-        task->entry = entry; task->context = context; initialize_stack(task);
+        task->entry = entry; task->context = context; __atomic_store_n(&wake_pending[i], 0u, __ATOMIC_RELAXED); initialize_stack(task);
         next_slot = (uint8_t)((i + 1u) % NOVA_TASK_MAX); return i;
     }
     return NOVA_TASK_ID_INVALID;
@@ -129,7 +131,7 @@ bool nova_task_resume(nova_task_id_t id) {
 bool nova_task_terminate(nova_task_id_t id) {
     if (id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
         tasks[id].info.state == NOVA_TASK_RUNNING) return false;
-    memset(&tasks[id], 0, sizeof(tasks[id])); return true;
+    memset(&tasks[id], 0, sizeof(tasks[id])); __atomic_store_n(&wake_pending[id], 0u, __ATOMIC_RELAXED); return true;
 }
 static void switch_current_to_scheduler(void) {
     if (current_task >= NOVA_TASK_MAX) return;
@@ -144,6 +146,26 @@ void nova_task_yield(void) {
     if (task->info.state != NOVA_TASK_RUNNING) return;
     task->info.state = NOVA_TASK_READY; switch_current_to_scheduler();
 }
+bool nova_task_prepare_block(uint32_t timeout_ms) {
+    if (current_task >= NOVA_TASK_MAX) return false;
+    task_control_t *task = &tasks[current_task];
+    if (task->info.state != NOVA_TASK_RUNNING) return false;
+    __atomic_store_n(&wake_pending[current_task], 0u, __ATOMIC_RELAXED);
+    task->info.wake_at_ms = timeout_ms == 0u ? 0u : scheduler_now_ms + timeout_ms;
+    task->info.state = NOVA_TASK_BLOCKED;
+    return true;
+}
+void nova_task_commit_block(void) {
+    if (current_task < NOVA_TASK_MAX && tasks[current_task].info.state == NOVA_TASK_BLOCKED)
+        switch_current_to_scheduler();
+}
+bool nova_task_wake(nova_task_id_t id) {
+    if (id >= NOVA_TASK_MAX) return false;
+    __atomic_store_n(&wake_pending[id], 1u, __ATOMIC_RELEASE);
+    return true;
+}
+uint32_t nova_task_now_ms(void) { return scheduler_now_ms; }
+
 void nova_task_sleep_current(uint32_t delay_ms) {
     if (current_task >= NOVA_TASK_MAX) return;
     task_control_t *task = &tasks[current_task];
@@ -155,9 +177,19 @@ nova_task_id_t nova_task_current_id(void) { return current_task; }
 void nova_task_scheduler_poll(uint32_t now_ms) {
     if (scheduler_active) return;
     scheduler_active = true; scheduler_now_ms = now_ms;
-    for (uint8_t i = 0u; i < NOVA_TASK_MAX; ++i)
-        if (tasks[i].info.state == NOVA_TASK_SLEEPING && deadline_reached(now_ms, tasks[i].info.wake_at_ms))
+    for (uint8_t i = 0u; i < NOVA_TASK_MAX; ++i) {
+        if (__atomic_exchange_n(&wake_pending[i], 0u, __ATOMIC_ACQ_REL) != 0u &&
+            tasks[i].info.state == NOVA_TASK_BLOCKED) {
             tasks[i].info.state = NOVA_TASK_READY;
+            tasks[i].info.wake_at_ms = 0u;
+        }
+        if ((tasks[i].info.state == NOVA_TASK_SLEEPING ||
+             (tasks[i].info.state == NOVA_TASK_BLOCKED && tasks[i].info.wake_at_ms != 0u)) &&
+            deadline_reached(now_ms, tasks[i].info.wake_at_ms)) {
+            tasks[i].info.state = NOVA_TASK_READY;
+            tasks[i].info.wake_at_ms = 0u;
+        }
+    }
     const uint8_t scan_start = next_slot;
     bool dispatched[NOVA_TASK_MAX] = {false};
     for (uint8_t n = 0u; n < NOVA_TASK_MAX; ++n) {
