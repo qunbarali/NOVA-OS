@@ -67,6 +67,14 @@ jobs:
             -o /tmp/nova-task-tests
           /tmp/nova-task-tests
 
+      - name: Run native IPC tests
+        if: inputs.run_source_tests
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -DNOVA_HOST_TEST -Iinclude \
+            src/kernel/task.c src/kernel/ipc.c src/kernel/smp_lock.c tests/host/test_ipc.c \
+            -o /tmp/nova-ipc-tests
+          /tmp/nova-ipc-tests
+
       - name: Configure firmware
         run: |
           cmake -S . -B "build-${{ matrix.board }}" -G Ninja \
