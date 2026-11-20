@@ -12,7 +12,7 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - Interfaces are versioned; optional hardware is exposed through capability discovery.
 - Recovery must remain possible if a NOVA image is damaged.
 
-## Current Alpha 1.1 execution model
+## Current Alpha 1.2 execution model
 - Core 0 initializes the board/kernel and owns the USB CDC command shell.
 - Core 0 runs an eight-slot cooperative state-machine scheduler from the shell's polling loop. Ready tasks are dispatched by numeric priority (lower value first); equal-priority tasks use rotating scan order.
 - A repeating 1 ms hardware timer callback increments an atomic system tick counter.
@@ -22,7 +22,8 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - Each task owns a fixed 512-byte, 8-byte-aligned stack. Architecture-specific context-switch routines save and restore task registers and PSP state on Cortex-M0+ and Cortex-M33. Task code runs on PSP, while a dedicated 1 KiB MSP stack serves exception handlers during task execution.
 - Four guard words detect writes into the low-address stack boundary; a low-address-first fill-pattern scan reports the deepest touched stack address as a high-water estimate. Guard corruption marks the task FAULTED.
 - Task call chains persist across cooperative yields and sleeps. Scheduling remains non-preemptive: a task that does not yield, sleep, or return can monopolize core 0. Tasks share one address space and privilege level; process isolation is not implemented.
-- A fixed memory pool provides eight 32-byte blocks; it is not a general-purpose heap.
+- A fixed memory pool provides eight 32-byte blocks; it is not a general-purpose heap. Pool metadata is protected by the shared RP hardware spinlock.
+- A static device manager registers up to eight named devices with class, capability flags, driver operations and context. The board layer registers the onboard LED as `led0`; shell inventory is available through `devices`. This registry is not yet a security capability system and has no hot-unplug or driver lifetime management.
 - IPC provides an eight-entry, 32-byte-per-message queue, task-owner-tracked non-blocking mutexes and event flags. Tasks can block on queue send/receive and event waits with optional millisecond timeouts; the scheduler resumes them on wake requests or timeout.
 - Core-local interrupt save/restore critical sections are available for short core-0 sections. They do not disable interrupts on the other core and are not an SMP lock.
 - Queue, mutex, event and fixed-pool metadata operations use a shared RP hardware spinlock. Wake requests use an atomic pending bit consumed by the core-0 scheduler. The task scheduler and task-control structures remain core-0-only; core 1 must not create, suspend, block, or inspect tasks. Blocking queue/event calls require a running core-0 task. The lock APIs are not ISR-reentrant.
@@ -35,7 +36,7 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 2. Interrupt-safe critical sections and priority-aware synchronization
 3. General memory allocator and per-task resource accounting
 4. Blocking IPC, wait queues and event subscriptions
-5. Device manager and HAL
+5. Block device interface, removable storage and filesystem
 6. Block device interface and filesystem
 7. USB device/host services
 8. Native executable loader/runtime
