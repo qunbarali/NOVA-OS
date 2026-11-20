@@ -6,7 +6,7 @@ if(NOT PICO_SDK_PATH)
     message(FATAL_ERROR "PICO_SDK_PATH is not set. Install the Raspberry Pi Pico SDK and set PICO_SDK_PATH.")
 endif()
 include(pico_sdk_import.cmake)
-project(nova_os VERSION 0.7.0 LANGUAGES C CXX ASM)
+project(nova_os VERSION 0.8.0 LANGUAGES C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -15,6 +15,7 @@ add_executable(nova_os
     src/main.c
     src/kernel/kernel.c
     src/kernel/task.c
+    src/kernel/crash.c
     src/kernel/critical.c
     src/kernel/memory.c
     src/kernel/ipc.c
@@ -22,10 +23,10 @@ add_executable(nova_os
     src/shell/shell.c
 )
 if(PICO_PLATFORM STREQUAL "rp2040")
-    target_sources(nova_os PRIVATE src/arch/armv6m/call_on_stack.S)
+    target_sources(nova_os PRIVATE src/arch/armv6m/call_on_stack.S src/arch/armv6m/fault_entry.S)
     target_compile_definitions(nova_os PRIVATE NOVA_ARCH_ARMV6M=1)
 elseif(PICO_PLATFORM STREQUAL "rp2350-arm-s")
-    target_sources(nova_os PRIVATE src/arch/armv8m/call_on_stack.S)
+    target_sources(nova_os PRIVATE src/arch/armv8m/call_on_stack.S src/arch/armv8m/fault_entry.S)
     target_compile_definitions(nova_os PRIVATE NOVA_ARCH_ARMV8M=1)
 else()
     message(FATAL_ERROR "NOVA currently supports RP2040 and RP2350 Cortex-M33 only; got PICO_PLATFORM=${PICO_PLATFORM}")
