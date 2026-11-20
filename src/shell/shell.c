@@ -11,7 +11,7 @@
 #include "nova/crash.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "0.8.0"
+#define NOVA_VERSION "0.9.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
@@ -62,8 +62,8 @@ static void print_tasks(void) {
         printf("  #%u %-12s %-8s prio=%u runs=%lu\n", (unsigned)info[i].id, info[i].name,
                task_state_name(info[i].state), (unsigned)info[i].priority,
                (unsigned long)info[i].runs);
-        printf("     stack=%u/%u bytes (high-water)\n", (unsigned)info[i].stack_used_bytes,
-               (unsigned)info[i].stack_size_bytes);
+        printf("     stack=%u/%u bytes (high-water; limit=%u)\n", (unsigned)info[i].stack_used_bytes,
+               (unsigned)info[i].stack_size_bytes, (unsigned)NOVA_TASK_STACK_LIMIT_BYTES);
     }
 }
 
@@ -93,7 +93,8 @@ static void execute(const char *line) {
         for (size_t i = 0u; i < count; ++i) {
             const char *reason = records[i].reason == NOVA_FAULT_STACK_GUARD ? "STACK_GUARD" :
                 records[i].reason == NOVA_FAULT_INVALID_TASK_RESULT ? "INVALID_RESULT" :
-                records[i].reason == NOVA_FAULT_TASK_RETURNED_RUNNING ? "BAD_RETURN_STATE" : "UNKNOWN";
+                records[i].reason == NOVA_FAULT_TASK_RETURNED_RUNNING ? "BAD_RETURN_STATE" :
+                records[i].reason == NOVA_FAULT_STACK_LIMIT ? "STACK_LIMIT" : "UNKNOWN";
             printf("  #%lu t=%lu ms task=%u %-12s %s\n",
                    (unsigned long)records[i].sequence, (unsigned long)records[i].tick_ms,
                    (unsigned)records[i].task_id, records[i].task_name, reason);
