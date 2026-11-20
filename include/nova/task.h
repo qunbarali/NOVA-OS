@@ -11,7 +11,7 @@
 #define NOVA_FAULT_LOG_CAPACITY 8u
 typedef uint8_t nova_task_id_t;
 #define NOVA_TASK_ID_INVALID ((nova_task_id_t)0xFFu)
-typedef enum { NOVA_TASK_UNUSED=0, NOVA_TASK_READY, NOVA_TASK_RUNNING, NOVA_TASK_SLEEPING, NOVA_TASK_SUSPENDED, NOVA_TASK_FAULTED } nova_task_state_t;
+typedef enum { NOVA_TASK_UNUSED=0, NOVA_TASK_READY, NOVA_TASK_RUNNING, NOVA_TASK_SLEEPING, NOVA_TASK_BLOCKED, NOVA_TASK_SUSPENDED, NOVA_TASK_FAULTED } nova_task_state_t;
 typedef enum { NOVA_TASK_AGAIN=0, NOVA_TASK_EXIT } nova_task_result_t;
 typedef enum { NOVA_FAULT_NONE=0, NOVA_FAULT_STACK_GUARD, NOVA_FAULT_INVALID_TASK_RESULT, NOVA_FAULT_TASK_RETURNED_RUNNING, NOVA_FAULT_STACK_LIMIT } nova_fault_reason_t;
 typedef struct { uint32_t sequence; uint32_t tick_ms; nova_task_id_t task_id; nova_fault_reason_t reason; char task_name[NOVA_TASK_NAME_MAX + 1u]; } nova_fault_record_t;
@@ -35,6 +35,10 @@ bool nova_task_resume(nova_task_id_t id);
 bool nova_task_terminate(nova_task_id_t id);
 void nova_task_yield(void);
 void nova_task_sleep_current(uint32_t delay_ms);
+bool nova_task_prepare_block(uint32_t timeout_ms);
+void nova_task_commit_block(void);
+bool nova_task_wake(nova_task_id_t id);
+uint32_t nova_task_now_ms(void);
 nova_task_id_t nova_task_current_id(void);
 void nova_task_scheduler_poll(uint32_t now_ms);
 size_t nova_task_snapshot(nova_task_info_t *out, size_t capacity);
