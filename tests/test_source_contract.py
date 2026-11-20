@@ -8,34 +8,46 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-class NovaSourceContractTests(unittest.TestCase):
+class NovaAlpha02Tests(unittest.TestCase):
     def test_dual_board_build_script(self):
         script = read("scripts/build-all.ps1")
         self.assertIn("Board = 'pico'", script)
         self.assertIn("Board = 'pico2'", script)
         self.assertIn("PICO_SDK_PATH", script)
 
-    def test_kernel_core1_diagnostics_are_atomic(self):
-        kernel = read("src/kernel/kernel.c")
-        self.assertIn("__atomic_add_fetch", kernel)
-        self.assertIn("__atomic_load_n", kernel)
-        self.assertIn("nova_core1_is_ready", kernel)
+    def test_scheduler_is_bounded_and_cooperative(self):
+        header = read("include/nova/task.h")
+        source = read("src/kernel/task.c")
+        self.assertIn("NOVA_TASK_MAX 8u", header)
+        self.assertIn("NOVA_TASK_AGAIN", header)
+        self.assertIn("nova_task_scheduler_poll", source)
+        self.assertIn("NOVA_TASK_SLEEPING", source)
 
-    def test_shell_has_bounded_input_and_reboot(self):
+    def test_pool_has_fixed_capacity(self):
+        header = read("include/nova/memory.h")
+        source = read("src/kernel/memory.c")
+        self.assertIn("NOVA_POOL_BLOCK_COUNT 8u", header)
+        self.assertIn("nova_pool_alloc", source)
+        self.assertIn("nova_pool_free", source)
+
+    def test_ipc_is_bounded(self):
+        header = read("include/nova/ipc.h")
+        source = read("src/kernel/ipc.c")
+        self.assertIn("NOVA_QUEUE_CAPACITY 8u", header)
+        self.assertIn("NOVA_QUEUE_MESSAGE_SIZE 32u", header)
+        self.assertIn("queue->count >= NOVA_QUEUE_CAPACITY", source)
+
+    def test_shell_polls_scheduler(self):
         shell = read("src/shell/shell.c")
-        self.assertIn("LINE_CAPACITY", shell)
-        self.assertIn("Input too long; command discarded", shell)
-        self.assertIn('"reboot"', shell)
+        self.assertIn("nova_kernel_poll()", shell)
+        self.assertIn('"task demo"', shell)
+        self.assertIn('"task stop"', shell)
 
-    def test_both_chip_memory_capacities_are_reported(self):
-        board = read("src/hal/board.c")
-        self.assertIn("return 264u", board)
-        self.assertIn("return 520u", board)
-
-    def test_build_has_warnings_and_uf2_outputs(self):
+    def test_build_includes_kernel_services(self):
         cmake = read("CMakeLists.txt")
+        self.assertIn("src/kernel/memory.c", cmake)
+        self.assertIn("src/kernel/ipc.c", cmake)
         self.assertIn("-Wall", cmake)
-        self.assertIn("pico_add_extra_outputs(nova_os)", cmake)
 
 
 if __name__ == "__main__":

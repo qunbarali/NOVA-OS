@@ -1,73 +1,52 @@
-# NOVA OS — Kernel Alpha 0.1.1
+# NOVA OS — Kernel Alpha 0.2.0
 
-NOVA is an independently designed embedded operating system project. This milestone hardens the first hardware bring-up shell for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350, Cortex-M33 target).
+NOVA is an independently designed embedded operating system project. Alpha 0.2 adds bounded cooperative task scheduling and foundational kernel services for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
-## Implemented in Alpha 0.1.1
-- Shared C11 codebase with separate Pico/Pico 2 build configurations
-- Raspberry Pi Pico SDK used as the hardware support layer, not as an OS
-- Onboard LED HAL
-- Core-1 heartbeat service with atomic diagnostics
-- USB CDC command shell
-- Board/chip identification and unique board ID reporting
-- SRAM capacity reporting (total physical capacity, not free memory)
-- Bounded command input with overflow rejection and backspace handling
-- Controlled watchdog reboot command
-- Windows PowerShell dual-target build and UF2 install guidance
-- Source-contract tests that can run without attached hardware
+## Alpha 0.2 features
+- Eight-slot cooperative state-machine task scheduler
+- Task creation, suspension, resumption, termination and sleep
+- Task state and dispatch diagnostics
+- Fixed memory pool: eight 32-byte blocks
+- Bounded IPC message queues: eight 32-byte messages
+- Non-blocking mutex and event-flag primitives
+- Scheduler polling integrated into the USB CDC shell
+- LED demo task: `task demo` / `task stop`
+- Separate Pico and Pico 2 build targets
 
 ## Windows prerequisites
-Install Git, CMake, Ninja, Python 3, ARM GNU Toolchain (`arm-none-eabi-gcc`) and the Raspberry Pi Pico SDK with its required submodules.
+Install Git, CMake, Ninja, Python 3, ARM GNU Toolchain (`arm-none-eabi-gcc`) and the Raspberry Pi Pico SDK with its required submodules. Set `PICO_SDK_PATH` to the SDK directory.
 
-Set `PICO_SDK_PATH` to the Pico SDK directory. See the official [Pico setup guide](https://github.com/raspberrypi/pico-setup) and [C/C++ SDK documentation](https://www.raspberrypi.com/documentation/microcontrollers/c_sdk.html).
-
-## Build both boards (PowerShell)
+## Build both targets
 
 ```powershell
-$env:PICO_SDK_PATH = 'C:\pico\pico-sdk'
 .\scripts\build-all.ps1
 ```
 
 Expected outputs: `build-pico\nova_os.uf2` and `build-pico2\nova_os.uf2`.
 
-## Install firmware
-1. Disconnect the board from USB.
-2. Hold BOOTSEL while connecting it to the computer.
-3. Wait for the `RPI-RP2` drive to appear.
-4. Copy the matching UF2 file to that drive.
-5. The board reboots into NOVA.
-
-This is ROM UF2 firmware installation/recovery. It is not booting NOVA from a USB thumb drive.
-
-## Serial console
-Open the board's USB CDC COM port at 115200 baud, then press Enter. Commands:
+## Install and test
+Put the board into BOOTSEL mode, copy the matching UF2 to its `RPI-RP2` drive, then open the USB CDC COM port. Try:
 
 ```text
-help
 version
-system
-cpu
-memory
 tasks
-uptime
-led on
-led off
-reboot
+task demo
+tasks
+memory
+task stop
+tasks
 ```
 
-## Source tests
+## Tests
+Run source-contract checks:
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-These tests check source contracts only. They do not replace firmware compilation, hardware-in-loop testing or physical board validation.
+These checks are not a substitute for compiling both firmware targets or testing on physical boards.
 
-## Current limitations
-- Core 1 heartbeat is a bring-up service, not a general-purpose scheduler.
-- No user-mode isolation, syscall boundary or preemptive context switching yet.
-- No dynamic memory allocator or memory accounting yet.
-- No filesystem, SD-card or USB mass-storage host implementation yet.
-- No native executable loader, application permissions or GUI yet.
-- No physical Pico/Pico 2 test has been performed by this build environment.
+## Important architecture limitations
+Alpha 0.2 uses cooperative state-machine tasks on core 0. Tasks share the core-0 stack; independent task stacks and preemptive context switching are not implemented. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded, non-blocking and single-core only. No process isolation or general-purpose heap exists yet.
 
-See `docs/ARCHITECTURE.md` and `docs/PHASE1_TEST_PLAN.md`.
+See [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
