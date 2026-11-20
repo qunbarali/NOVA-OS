@@ -89,7 +89,7 @@ class NovaAlpha12Tests(unittest.TestCase):
         self.assertIn("nova_task_fault_count()", shell)
         self.assertIn('NOVA_VERSION "1.2.0"', shell)
         self.assertIn("stack_used_bytes", shell)
-        self.assertIn("(high-water)", shell)
+        self.assertIn("(high-water; limit=", shell)
 
     def test_firmware_workflow_is_manual_and_builds_both_targets(self):
         workflow = read(".github/workflows/firmware-build.yml")
