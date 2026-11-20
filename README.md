@@ -2,7 +2,7 @@
 
 NOVA is an independently designed embedded operating system project. Alpha 0.3 adds priority-aware cooperative dispatch, task fault containment and core-local interrupt critical sections for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
-## Alpha 0.2 features
+## Alpha 0.3 features
 - Eight-slot cooperative state-machine scheduler with priority-ordered dispatch and round-robin tie-breaking
 - Task creation, suspension, resumption, termination and sleep
 - Task state, priority, dispatch and fault diagnostics
