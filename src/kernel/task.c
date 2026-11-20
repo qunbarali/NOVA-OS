@@ -68,8 +68,7 @@ bool nova_task_terminate(nova_task_id_t id) {
 void nova_task_sleep_current(uint32_t delay_ms) {
     if (current_task >= NOVA_TASK_MAX) return;
     task_control_t *task = &tasks[current_task];
-    task->info.wake_at_ms = task->info.wake_at_ms + delay_ms;
-    /* The scheduler sets wake_at_ms to the current time before dispatch. */
+    task->info.wake_at_ms += delay_ms;
     task->sleep_requested = true;
 }
 
@@ -85,8 +84,11 @@ void nova_task_scheduler_poll(uint32_t now_ms) {
         }
     }
 
+    /* Keep the scan origin stable during this pass. Advancing next_slot inside
+       the loop changes the index twice and can skip runnable task slots. */
+    const uint8_t scan_start = next_slot;
     for (uint8_t n = 0u; n < NOVA_TASK_MAX; ++n) {
-        uint8_t i = (uint8_t)((next_slot + n) % NOVA_TASK_MAX);
+        uint8_t i = (uint8_t)((scan_start + n) % NOVA_TASK_MAX);
         task_control_t *task = &tasks[i];
         if (task->info.state != NOVA_TASK_READY || task->entry == NULL) continue;
 
@@ -105,9 +107,9 @@ void nova_task_scheduler_poll(uint32_t now_ms) {
         } else {
             task->info.state = NOVA_TASK_READY;
         }
-        next_slot = (uint8_t)((i + 1u) % NOVA_TASK_MAX);
     }
     current_task = NOVA_TASK_ID_INVALID;
+    next_slot = (uint8_t)((scan_start + 1u) % NOVA_TASK_MAX);
 }
 
 size_t nova_task_snapshot(nova_task_info_t *out, size_t capacity) {

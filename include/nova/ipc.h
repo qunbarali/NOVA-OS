@@ -8,6 +8,7 @@
 
 typedef struct {
     uint8_t data[NOVA_QUEUE_CAPACITY][NOVA_QUEUE_MESSAGE_SIZE];
+    uint8_t lengths[NOVA_QUEUE_CAPACITY];
     uint8_t head;
     uint8_t tail;
     uint8_t count;

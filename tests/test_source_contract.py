@@ -22,6 +22,7 @@ class NovaAlpha02Tests(unittest.TestCase):
         self.assertIn("NOVA_TASK_AGAIN", header)
         self.assertIn("nova_task_scheduler_poll", source)
         self.assertIn("NOVA_TASK_SLEEPING", source)
+        self.assertIn("scan_start", source)
 
     def test_pool_has_fixed_capacity(self):
         header = read("include/nova/memory.h")
@@ -30,12 +31,13 @@ class NovaAlpha02Tests(unittest.TestCase):
         self.assertIn("nova_pool_alloc", source)
         self.assertIn("nova_pool_free", source)
 
-    def test_ipc_is_bounded(self):
+    def test_ipc_is_bounded_and_preserves_message_length(self):
         header = read("include/nova/ipc.h")
         source = read("src/kernel/ipc.c")
         self.assertIn("NOVA_QUEUE_CAPACITY 8u", header)
         self.assertIn("NOVA_QUEUE_MESSAGE_SIZE 32u", header)
-        self.assertIn("queue->count >= NOVA_QUEUE_CAPACITY", source)
+        self.assertIn("lengths[NOVA_QUEUE_CAPACITY]", header)
+        self.assertIn("capacity < length", source)
 
     def test_shell_polls_scheduler(self):
         shell = read("src/shell/shell.c")

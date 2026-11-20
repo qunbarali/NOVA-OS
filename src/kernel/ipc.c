@@ -10,17 +10,20 @@ bool nova_queue_send(nova_queue_t *queue, const void *message, size_t length) {
         length > NOVA_QUEUE_MESSAGE_SIZE || queue->count >= NOVA_QUEUE_CAPACITY) return false;
     memset(queue->data[queue->tail], 0, NOVA_QUEUE_MESSAGE_SIZE);
     memcpy(queue->data[queue->tail], message, length);
+    queue->lengths[queue->tail] = (uint8_t)length;
     queue->tail = (uint8_t)((queue->tail + 1u) % NOVA_QUEUE_CAPACITY);
     ++queue->count;
     return true;
 }
 
 bool nova_queue_receive(nova_queue_t *queue, void *message, size_t capacity, size_t *received) {
-    if (queue == NULL || message == NULL || queue->count == 0u ||
-        capacity < NOVA_QUEUE_MESSAGE_SIZE) return false;
-    memcpy(message, queue->data[queue->head], NOVA_QUEUE_MESSAGE_SIZE);
-    if (received != NULL) *received = NOVA_QUEUE_MESSAGE_SIZE;
+    if (queue == NULL || message == NULL || queue->count == 0u) return false;
+    size_t length = queue->lengths[queue->head];
+    if (capacity < length) return false;
+    memcpy(message, queue->data[queue->head], length);
+    if (received != NULL) *received = length;
     memset(queue->data[queue->head], 0, NOVA_QUEUE_MESSAGE_SIZE);
+    queue->lengths[queue->head] = 0u;
     queue->head = (uint8_t)((queue->head + 1u) % NOVA_QUEUE_CAPACITY);
     --queue->count;
     return true;
