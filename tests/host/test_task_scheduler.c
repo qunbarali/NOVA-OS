@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 static unsigned task_a_runs;
 static unsigned task_b_runs;
@@ -93,6 +94,12 @@ int main(void) {
     nova_task_info_t snapshot[NOVA_TASK_MAX];
     assert(nova_task_snapshot(snapshot, NOVA_TASK_MAX) == 1u);
     assert(snapshot[0].state == NOVA_TASK_FAULTED);
+    nova_fault_record_t fault_records[NOVA_FAULT_LOG_CAPACITY];
+    assert(nova_task_fault_snapshot(fault_records, NOVA_FAULT_LOG_CAPACITY) == 1u);
+    assert(fault_records[0].sequence == 1u);
+    assert(fault_records[0].task_id == bad);
+    assert(fault_records[0].reason == NOVA_FAULT_INVALID_TASK_RESULT);
+    assert(strcmp(fault_records[0].task_name, "bad") == 0);
     assert(nova_task_terminate(bad));
     assert(nova_task_count() == 0u);
 
