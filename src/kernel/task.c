@@ -103,6 +103,7 @@ static bool stack_guard_valid(const task_control_t *task) {
     return true;
 }
 void nova_task_init(void) {
+    if (!scheduler_core()) return;
     memset(tasks, 0, sizeof(tasks)); current_task = NOVA_TASK_ID_INVALID; next_slot = 0u;
     dispatches = 0u; faults = 0u; scheduler_now_ms = 0u; scheduler_active = false;
     memset(fault_log, 0, sizeof(fault_log)); fault_sequence = 0u; fault_log_count = 0u;
@@ -112,7 +113,7 @@ void nova_task_init(void) {
 #endif
 }
 nova_task_id_t nova_task_create(const char *name, nova_task_entry_t entry, void *context) {
-    if (name == NULL || entry == NULL || name[0] == '\0') return NOVA_TASK_ID_INVALID;
+    if (!scheduler_core() || name == NULL || entry == NULL || name[0] == '\0') return NOVA_TASK_ID_INVALID;
     for (uint8_t n = 0u; n < NOVA_TASK_MAX; ++n) {
         uint8_t i = (uint8_t)((next_slot + n) % NOVA_TASK_MAX);
         if (tasks[i].info.state != NOVA_TASK_UNUSED) continue;
@@ -126,21 +127,21 @@ nova_task_id_t nova_task_create(const char *name, nova_task_entry_t entry, void 
     return NOVA_TASK_ID_INVALID;
 }
 bool nova_task_set_priority(nova_task_id_t id, uint8_t priority) {
-    if (id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
+    if (!scheduler_core() || id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
         tasks[id].info.state == NOVA_TASK_FAULTED || tasks[id].info.state == NOVA_TASK_RUNNING) return false;
     tasks[id].info.priority = priority; return true;
 }
 bool nova_task_suspend(nova_task_id_t id) {
-    if (id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
+    if (!scheduler_core() || id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
         tasks[id].info.state == NOVA_TASK_RUNNING || tasks[id].info.state == NOVA_TASK_FAULTED) return false;
     tasks[id].info.state = NOVA_TASK_SUSPENDED; return true;
 }
 bool nova_task_resume(nova_task_id_t id) {
-    if (id >= NOVA_TASK_MAX || tasks[id].info.state != NOVA_TASK_SUSPENDED) return false;
+    if (!scheduler_core() || id >= NOVA_TASK_MAX || tasks[id].info.state != NOVA_TASK_SUSPENDED) return false;
     tasks[id].info.state = NOVA_TASK_READY; return true;
 }
 bool nova_task_terminate(nova_task_id_t id) {
-    if (id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
+    if (!scheduler_core() || id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
         tasks[id].info.state == NOVA_TASK_RUNNING) return false;
     memset(&tasks[id], 0, sizeof(tasks[id])); __atomic_store_n(&wake_pending[id], (uint8_t)0u, __ATOMIC_RELAXED); return true;
 }
@@ -186,7 +187,7 @@ void nova_task_sleep_current(uint32_t delay_ms) {
 }
 nova_task_id_t nova_task_current_id(void) { return scheduler_core() ? current_task : NOVA_TASK_ID_INVALID; }
 void nova_task_scheduler_poll(uint32_t now_ms) {
-    if (scheduler_active) return;
+    if (!scheduler_core() || scheduler_active) return;
     scheduler_active = true; scheduler_now_ms = now_ms;
     for (uint8_t i = 0u; i < NOVA_TASK_MAX; ++i) {
         if (__atomic_exchange_n(&wake_pending[i], (uint8_t)0u, __ATOMIC_ACQ_REL) != 0u &&
@@ -246,21 +247,22 @@ void nova_task_scheduler_poll(uint32_t now_ms) {
     next_slot = (uint8_t)((scan_start + 1u) % NOVA_TASK_MAX); scheduler_active = false;
 }
 size_t nova_task_snapshot(nova_task_info_t *out, size_t capacity) {
-    if (out == NULL || capacity == 0u) return 0u;
+    if (!scheduler_core() || out == NULL || capacity == 0u) return 0u;
     size_t copied = 0u;
     for (uint8_t i = 0u; i < NOVA_TASK_MAX && copied < capacity; ++i)
         if (tasks[i].info.state != NOVA_TASK_UNUSED) out[copied++] = tasks[i].info;
     return copied;
 }
 size_t nova_task_count(void) {
+    if (!scheduler_core()) return 0u;
     size_t count = 0u;
     for (uint8_t i = 0u; i < NOVA_TASK_MAX; ++i) if (tasks[i].info.state != NOVA_TASK_UNUSED) ++count;
     return count;
 }
-uint32_t nova_task_dispatch_count(void) { return dispatches; }
-uint32_t nova_task_fault_count(void) { return faults; }
+uint32_t nova_task_dispatch_count(void) { return scheduler_core() ? dispatches : 0u; }
+uint32_t nova_task_fault_count(void) { return scheduler_core() ? faults : 0u; }
 size_t nova_task_fault_snapshot(nova_fault_record_t *out, size_t capacity) {
-    if (out == NULL || capacity == 0u) return 0u;
+    if (!scheduler_core() || out == NULL || capacity == 0u) return 0u;
     size_t count = fault_log_count < capacity ? fault_log_count : capacity;
     uint32_t first = fault_sequence - (uint32_t)fault_log_count;
     if (fault_log_count > count) first += (uint32_t)(fault_log_count - count);
