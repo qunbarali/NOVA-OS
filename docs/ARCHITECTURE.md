@@ -7,37 +7,44 @@ NOVA is an independently designed operating system, not a Linux, Android, Window
 - Hardware abstraction separates kernel policy from silicon-specific details.
 - No dynamic allocation is required during early boot.
 - Interrupt handlers remain deterministic and short.
-- Kernel services communicate through explicit queues/events rather than shared unbounded state.
+- Kernel services communicate through explicit bounded queues/events rather than unbounded shared state.
 - Device access will be capability-oriented when application isolation exists.
 - Interfaces are versioned; optional hardware is exposed through capability discovery.
 - Recovery must remain possible if a NOVA image is damaged.
 
-## Current Alpha 0.1.1 execution model
+## Current Alpha 0.2 execution model
 - Core 0 initializes the board/kernel and owns the USB CDC command shell.
-- Core 1 runs a diagnostic heartbeat service.
-- Heartbeat and readiness diagnostics use compiler atomic operations.
+- Core 0 runs an eight-slot cooperative state-machine scheduler from the shell's polling loop.
+- A repeating 1 ms hardware timer callback increments an atomic system tick counter.
+- Core 1 runs a diagnostic heartbeat service; it is not a second scheduler.
+- Task entry callbacks must perform bounded work and return; sleeping tasks are resumed using wrap-safe millisecond deadlines.
+- Tasks share the core-0 call stack. Independent task stacks, context switching and preemption are not implemented.
+- A fixed memory pool provides eight 32-byte blocks; it is not a general-purpose heap.
+- IPC currently provides an eight-entry, 32-byte-per-message queue, task-owner-tracked non-blocking mutexes and event flags.
+- Queue/mutex/event primitives are single-core only and are not safe for concurrent core-1 use.
 - The shell has a bounded line buffer and rejects overlong commands.
-- `memory` reports physical SRAM capacity only; it does not claim to know free memory.
-- This is a bring-up kernel, not yet a microkernel with process isolation or a scheduler.
+- The memory command reports physical SRAM capacity and fixed-pool availability, not total free SRAM.
+- This is an embedded kernel foundation, not yet a protected microkernel with process isolation.
 
 ## Planned kernel services
 1. Boot and board identification
-2. Interrupt/event subsystem
-3. Bounded cooperative scheduler and task lifecycle
-4. Per-task stacks and stack guards
-5. Fixed-size memory pools and heap
-6. IPC queues and event channels
-7. Device manager and HAL
-8. Block device interface and filesystem
-9. USB device/host services
-10. Native executable loader/runtime
-11. Shell, display manager and GUI
+2. Scheduler context switching, independent stacks and stack guards
+3. Interrupt-safe critical sections and priority-aware synchronization
+4. General memory allocator and per-task resource accounting
+5. Blocking IPC, wait queues and event subscriptions
+6. Device manager and HAL
+7. Block device interface and filesystem
+8. USB device/host services
+9. Native executable loader/runtime
+10. Shell, display manager and GUI
+11. Process isolation and capability enforcement
 
 ## Processor strategy
 - RP2040 uses dual Cortex-M0+ cores and 264 KiB SRAM.
 - RP2350 supports dual Cortex-M33 or Hazard3 RISC-V cores and 520 KiB SRAM.
-- Phase 1 targets RP2040 and RP2350 Cortex-M33 to maximize shared C implementation.
+- Current firmware targets RP2040 and RP2350 Cortex-M33 to maximize shared C implementation.
 - RP2350 Hazard3 is a separate architecture port; ARM assembly and processor-specific code must not leak into common kernel interfaces.
+- Preemptive context switching must be implemented and validated separately for Cortex-M0+ and Cortex-M33.
 
 ## Storage and boot semantics
 - Internal QSPI flash: initial firmware and system image.
@@ -48,10 +55,10 @@ NOVA is an independently designed operating system, not a Linux, Android, Window
 
 ## Security and reliability
 - Do not write RP2350 OTP during development; OTP writes are irreversible.
-- Do not modify boot metadata or bootloader regions in Alpha 0.1.
+- Do not modify boot metadata or bootloader regions during Alpha development.
 - Future firmware slots need image validation, rollback metadata and power-failure-safe activation.
 - Treat USB input and filesystem metadata as untrusted.
 - Add privilege boundaries only when context switching, stack ownership and interrupt rules are validated.
 
 ## SDK boundary
-The Raspberry Pi Pico SDK is currently used as a hardware support and build layer for startup, clocks, GPIO, multicore, USB CDC and watchdog access. NOVA's kernel policy, shell, task model, application ABI and filesystem are independently authored. Long-term independence requires replacing SDK-dependent services incrementally with NOVA HAL implementations; the current firmware is not yet SDK-independent.
+The Raspberry Pi Pico SDK is currently used as a hardware support and build layer for startup, clocks, GPIO, multicore, USB CDC, timer and watchdog access. NOVA's kernel policy, shell, task model, IPC APIs and future application ABI/filesystem are independently authored. Long-term independence requires replacing SDK-dependent services incrementally with NOVA HAL implementations; the current firmware is not yet SDK-independent.
