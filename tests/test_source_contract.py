@@ -8,7 +8,7 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-class NovaAlpha07Tests(unittest.TestCase):
+class NovaAlpha12Tests(unittest.TestCase):
     def test_dual_board_build_script(self):
         script = read("scripts/build-all.ps1")
         self.assertIn("Board = 'pico'", script)
