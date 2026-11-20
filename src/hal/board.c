@@ -2,14 +2,41 @@
 #include "pico/stdlib.h"
 #include "pico/unique_id.h"
 #include "nova/board.h"
+#include "nova/device.h"
 
 static bool led_state;
+static int led_device_read(void *context, void *buffer, size_t capacity) {
+    (void)context;
+    if (buffer == NULL || capacity < 1u) return -1;
+    ((uint8_t *)buffer)[0] = led_state ? 1u : 0u;
+    return 1;
+}
+static int led_device_write(void *context, const void *buffer, size_t length) {
+    (void)context;
+    if (buffer == NULL || length < 1u || ((const uint8_t *)buffer)[0] > 1u) return -1;
+    nova_led_set(((const uint8_t *)buffer)[0] != 0u);
+    return 1;
+}
+static const nova_device_ops_t led_device_ops = {
+    .read = led_device_read,
+    .write = led_device_write,
+    .control = NULL
+};
 
 void nova_board_init(void) {
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     led_state = false;
     gpio_put(PICO_DEFAULT_LED_PIN, 0);
+    const nova_device_t led_device = {
+        .id = 0u,
+        .name = "led0",
+        .device_class = NOVA_DEVICE_GPIO,
+        .capabilities = NOVA_DEVICE_CAP_READ | NOVA_DEVICE_CAP_WRITE,
+        .ops = &led_device_ops,
+        .context = NULL
+    };
+    (void)nova_device_register(&led_device);
 }
 
 void nova_led_set(bool on) {
