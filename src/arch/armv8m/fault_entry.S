@@ -4,9 +4,10 @@
 .global HardFault_Handler
 .global isr_hardfault
 .type HardFault_Handler, %function
+.type isr_hardfault, %function
 .thumb_func
-HardFault_Handler:
 isr_hardfault:
+HardFault_Handler:
     mov r1, lr
     movs r2, #4
     tst r1, r2
