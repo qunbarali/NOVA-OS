@@ -120,7 +120,7 @@ nova_task_id_t nova_task_create(const char *name, nova_task_entry_t entry, void 
         size_t length = strlen(name); if (length > NOVA_TASK_NAME_MAX) length = NOVA_TASK_NAME_MAX;
         memcpy(task->info.name, name, length); task->info.name[length] = '\0';
         task->info.state = NOVA_TASK_READY; task->info.priority = NOVA_TASK_PRIORITY_DEFAULT;
-        task->entry = entry; task->context = context; __atomic_store_n(&wake_pending[i], 0u, __ATOMIC_RELAXED); initialize_stack(task);
+        task->entry = entry; task->context = context; __atomic_store_n(&wake_pending[i], (uint8_t)0u, __ATOMIC_RELAXED); initialize_stack(task);
         next_slot = (uint8_t)((i + 1u) % NOVA_TASK_MAX); return i;
     }
     return NOVA_TASK_ID_INVALID;
@@ -142,7 +142,7 @@ bool nova_task_resume(nova_task_id_t id) {
 bool nova_task_terminate(nova_task_id_t id) {
     if (id >= NOVA_TASK_MAX || tasks[id].info.state == NOVA_TASK_UNUSED ||
         tasks[id].info.state == NOVA_TASK_RUNNING) return false;
-    memset(&tasks[id], 0, sizeof(tasks[id])); __atomic_store_n(&wake_pending[id], 0u, __ATOMIC_RELAXED); return true;
+    memset(&tasks[id], 0, sizeof(tasks[id])); __atomic_store_n(&wake_pending[id], (uint8_t)0u, __ATOMIC_RELAXED); return true;
 }
 static void switch_current_to_scheduler(void) {
     if (current_task >= NOVA_TASK_MAX) return;
@@ -189,7 +189,7 @@ void nova_task_scheduler_poll(uint32_t now_ms) {
     if (scheduler_active) return;
     scheduler_active = true; scheduler_now_ms = now_ms;
     for (uint8_t i = 0u; i < NOVA_TASK_MAX; ++i) {
-        if (__atomic_exchange_n(&wake_pending[i], 0u, __ATOMIC_ACQ_REL) != 0u &&
+        if (__atomic_exchange_n(&wake_pending[i], (uint8_t)0u, __ATOMIC_ACQ_REL) != 0u &&
             tasks[i].info.state == NOVA_TASK_BLOCKED) {
             tasks[i].info.state = NOVA_TASK_READY;
             tasks[i].info.wake_at_ms = 0u;
