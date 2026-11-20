@@ -24,6 +24,7 @@ static const char *task_state_name(nova_task_state_t state) {
         case NOVA_TASK_RUNNING: return "RUNNING";
         case NOVA_TASK_SLEEPING: return "SLEEP";
         case NOVA_TASK_SUSPENDED: return "SUSPEND";
+        case NOVA_TASK_FAULTED: return "FAULTED";
         default: return "UNUSED";
     }
 }
