@@ -60,7 +60,9 @@ class NovaAlpha03Tests(unittest.TestCase):
         self.assertIn('"task demo"', shell)
         self.assertIn('"task stop"', shell)
         self.assertIn("nova_system_ticks()", shell)
-        self.assertIn("nova_kernel_timer_ready()", shell)\n        self.assertIn("nova_task_fault_count()", shell)\n        self.assertIn("NOVA_VERSION \\"0.3.0\\"", shell)
+        self.assertIn("nova_kernel_timer_ready()", shell)
+        self.assertIn("nova_task_fault_count()", shell)
+        self.assertIn('NOVA_VERSION "0.3.0"', shell)
 
     def test_firmware_workflow_is_manual_and_builds_both_targets(self):
         workflow = read(".github/workflows/firmware-build.yml")
@@ -76,6 +78,8 @@ class NovaAlpha03Tests(unittest.TestCase):
         cmake = read("CMakeLists.txt")
         self.assertIn("src/kernel/memory.c", cmake)
         self.assertIn("src/kernel/ipc.c", cmake)
+        self.assertIn("src/kernel/critical.c", cmake)
+        self.assertIn("VERSION 0.3.0", cmake)
         self.assertIn("-Wall", cmake)
         kernel = read("src/kernel/kernel.c")
         self.assertIn("add_repeating_timer_ms", kernel)
