@@ -18,6 +18,7 @@ add_executable(nova_os
     src/main.c
     src/kernel/kernel.c
     src/kernel/task.c
+    src/kernel/critical.c
     src/kernel/memory.c
     src/kernel/ipc.c
     src/hal/board.c
