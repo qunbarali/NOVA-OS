@@ -104,32 +104,32 @@ static void execute(const char *line) {
     } else if (!strcmp(line, "devices")) {
         nova_device_t devices[NOVA_DEVICE_MAX];
         size_t count = nova_device_snapshot(devices, NOVA_DEVICE_MAX);
-        printf("Devices: %lu/%u\\n", (unsigned long)count, (unsigned)NOVA_DEVICE_MAX);
+        printf("Devices: %lu/%u\n", (unsigned long)count, (unsigned)NOVA_DEVICE_MAX);
         for (size_t i = 0u; i < count; ++i)
-            printf("  #%u %-12s %-8s caps=0x%02lx\\n", (unsigned)devices[i].id,
+            printf("  #%u %-12s %-8s caps=0x%02lx\n", (unsigned)devices[i].id,
                    devices[i].name, nova_device_class_name(devices[i].device_class),
                    (unsigned long)devices[i].capabilities);
     } else if (!strcmp(line, "device led0 on")) {
         const uint8_t value = 1u;
-        nova_shell_write(nova_device_write("led0", &value, sizeof(value)) == 1 ? "led0 on\\n" : "device write failed\\n");
+        nova_shell_write(nova_device_write("led0", &value, sizeof(value)) == 1 ? "led0 on\n" : "device write failed\n");
     } else if (!strcmp(line, "device led0 off")) {
         const uint8_t value = 0u;
-        nova_shell_write(nova_device_write("led0", &value, sizeof(value)) == 1 ? "led0 off\\n" : "device write failed\\n");
+        nova_shell_write(nova_device_write("led0", &value, sizeof(value)) == 1 ? "led0 off\n" : "device write failed\n");
     } else if (!strcmp(line, "crash")) {
         nova_crash_record_t record;
         if (nova_crash_read(&record)) {
-            printf("Previous HardFault: PC=0x%08lx LR=0x%08lx xPSR=0x%08lx\\n",
+            printf("Previous HardFault: PC=0x%08lx LR=0x%08lx xPSR=0x%08lx\n",
                    (unsigned long)record.pc, (unsigned long)record.lr,
                    (unsigned long)record.xpsr);
-            printf("EXC_RETURN=0x%08lx frame=0x%08lx R0=0x%08lx R1=0x%08lx\\n",
+            printf("EXC_RETURN=0x%08lx frame=0x%08lx R0=0x%08lx R1=0x%08lx\n",
                    (unsigned long)record.exc_return, (unsigned long)record.frame_address,
                    (unsigned long)record.r0, (unsigned long)record.r1);
         } else {
-            nova_shell_write("No retained HardFault record.\\n");
+            nova_shell_write("No retained HardFault record.\n");
         }
     } else if (!strcmp(line, "crash clear")) {
         nova_crash_clear();
-        nova_shell_write("Retained crash record cleared.\\n");
+        nova_shell_write("Retained crash record cleared.\n");
     } else if (!strcmp(line, "uptime")) {
         printf("%lu ms\n", (unsigned long)nova_uptime_ms());
     } else if (!strcmp(line, "task demo")) {
