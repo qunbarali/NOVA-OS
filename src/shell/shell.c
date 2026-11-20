@@ -10,7 +10,7 @@
 #include "nova/memory.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "0.5.0"
+#define NOVA_VERSION "0.6.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
@@ -61,7 +61,7 @@ static void print_tasks(void) {
         printf("  #%u %-12s %-8s prio=%u runs=%lu\n", (unsigned)info[i].id, info[i].name,
                task_state_name(info[i].state), (unsigned)info[i].priority,
                (unsigned long)info[i].runs);
-        printf("     stack=%u/%u bytes\n", (unsigned)info[i].stack_used_bytes,
+        printf("     stack=%u/%u bytes (high-water)\n", (unsigned)info[i].stack_used_bytes,
                (unsigned)info[i].stack_size_bytes);
     }
 }

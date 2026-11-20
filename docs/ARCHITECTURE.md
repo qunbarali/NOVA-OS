@@ -1,7 +1,7 @@
 # NOVA OS — architecture baseline
 
 ## Mission
-NOVA is an independently designed operating system, not a Linux, Android, Windows or iOS derivative. It begins on RP2040/RP2350 and is intended to scale to more capable processors through explicit architecture ports.
+NOVA is an independently designed embedded operating system, not a Linux, Android, Windows or iOS derivative. It begins on RP2040/RP2350 and is intended to scale to more capable processors through explicit architecture ports.
 
 ## Architecture principles
 - Hardware abstraction separates kernel policy from silicon-specific details.
@@ -12,15 +12,15 @@ NOVA is an independently designed operating system, not a Linux, Android, Window
 - Interfaces are versioned; optional hardware is exposed through capability discovery.
 - Recovery must remain possible if a NOVA image is damaged.
 
-## Current Alpha 0.5 execution model
+## Current Alpha 0.6 execution model
 - Core 0 initializes the board/kernel and owns the USB CDC command shell.
 - Core 0 runs an eight-slot cooperative state-machine scheduler from the shell's polling loop. Ready tasks are dispatched by numeric priority (lower value first); equal-priority tasks use rotating scan order.
 - A repeating 1 ms hardware timer callback increments an atomic system tick counter.
 - Core 1 runs a diagnostic heartbeat service; it is not a second scheduler.
 - Task callbacks run on persistent per-task stacks. They may yield or sleep and resume at the instruction following that call; returning NOVA_TASK_AGAIN rebuilds the stack and restarts the callback, while NOVA_TASK_EXIT terminates it.
 - Invalid task callback return values move that task to a FAULTED state; the slot remains inspectable and must be explicitly terminated.
-- Each task owns a fixed 512-byte, 8-byte-aligned stack. Architecture-specific context-switch routines save and restore task registers and PSP state on Cortex-M0+ and Cortex-M33. Task code runs on PSP, while a dedicated 1 KiB MSP stack serves interrupt handlers during task execution.
-- Four guard words and a fill-pattern high-water estimate are maintained per task. Guard corruption marks the task FAULTED.
+- Each task owns a fixed 512-byte, 8-byte-aligned stack. Architecture-specific context-switch routines save and restore task registers and PSP state on Cortex-M0+ and Cortex-M33. Task code runs on PSP, while a dedicated 1 KiB MSP stack serves exception handlers during task execution.
+- Four guard words detect writes into the low-address stack boundary; a low-address-first fill-pattern scan reports the deepest touched stack address as a high-water estimate. Guard corruption marks the task FAULTED.
 - Task call chains persist across cooperative yields and sleeps. Scheduling remains non-preemptive: a task that does not yield, sleep, or return can monopolize core 0. Tasks share one address space and privilege level; process isolation is not implemented.
 - A fixed memory pool provides eight 32-byte blocks; it is not a general-purpose heap.
 - IPC currently provides an eight-entry, 32-byte-per-message queue, task-owner-tracked non-blocking mutexes and event flags.
@@ -31,17 +31,16 @@ NOVA is an independently designed operating system, not a Linux, Android, Window
 - This is an embedded kernel foundation, not yet a protected microkernel with process isolation.
 
 ## Planned kernel services
-1. Boot and board identification
-2. Exception frames, fault entry and stronger stack guards
-3. Interrupt-safe critical sections and priority-aware synchronization
-4. General memory allocator and per-task resource accounting
-5. Blocking IPC, wait queues and event subscriptions
-6. Device manager and HAL
-7. Block device interface and filesystem
-8. USB device/host services
-9. Native executable loader/runtime
-10. Shell, display manager and GUI
-11. Process isolation and capability enforcement
+1. Exception frames, fault entry and stronger stack protection
+2. Interrupt-safe critical sections and priority-aware synchronization
+3. General memory allocator and per-task resource accounting
+4. Blocking IPC, wait queues and event subscriptions
+5. Device manager and HAL
+6. Block device interface and filesystem
+7. USB device/host services
+8. Native executable loader/runtime
+9. Shell, display manager and GUI
+10. Process isolation and capability enforcement
 
 ## Processor strategy
 - RP2040 uses dual Cortex-M0+ cores and 264 KiB SRAM.

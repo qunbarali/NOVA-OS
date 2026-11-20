@@ -46,6 +46,7 @@ int main(void) {
     nova_task_info_t stack_info[NOVA_TASK_MAX];
     assert(nova_task_snapshot(stack_info, NOVA_TASK_MAX) == 3u);
     assert(stack_info[0].stack_size_bytes == NOVA_TASK_STACK_SIZE);
+    assert(stack_info[0].stack_used_bytes == 9u * sizeof(uint32_t));
 
     nova_task_scheduler_poll(100u);
     assert(task_a_runs == 1u && task_b_runs == 1u && task_exit_runs == 1u);

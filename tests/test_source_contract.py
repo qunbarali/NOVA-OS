@@ -8,7 +8,7 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-class NovaAlpha05Tests(unittest.TestCase):
+class NovaAlpha06Tests(unittest.TestCase):
     def test_dual_board_build_script(self):
         script = read("scripts/build-all.ps1")
         self.assertIn("Board = 'pico'", script)
@@ -62,8 +62,9 @@ class NovaAlpha05Tests(unittest.TestCase):
         self.assertIn("nova_system_ticks()", shell)
         self.assertIn("nova_kernel_timer_ready()", shell)
         self.assertIn("nova_task_fault_count()", shell)
-        self.assertIn('NOVA_VERSION "0.5.0"', shell)
+        self.assertIn('NOVA_VERSION "0.6.0"', shell)
         self.assertIn("stack_used_bytes", shell)
+        self.assertIn("(high-water)", shell)
 
     def test_firmware_workflow_is_manual_and_builds_both_targets(self):
         workflow = read(".github/workflows/firmware-build.yml")
@@ -75,12 +76,20 @@ class NovaAlpha05Tests(unittest.TestCase):
         self.assertIn("PICO_PLATFORM", workflow)
         self.assertIn("actions/upload-artifact@v4", workflow)
 
-    def test_build_includes_kernel_services(self):
+    def test_stack_watermark_scans_from_low_address_and_tracks_initial_frame(self):
+        source = read("src/kernel/task.c")
+        self.assertIn("task->stack[untouched] == NOVA_STACK_FILL_WORD", source)
+        self.assertIn("NOVA_TASK_STACK_WORDS - untouched", source)
+        self.assertIn("update_stack_usage(task);", source)
+        host_test = read("tests/host/test_task_scheduler.c")
+        self.assertIn("stack_used_bytes == 9u * sizeof(uint32_t)", host_test)
+
+    def test_build_includes_kernel_services_and_both_context_ports(self):
         cmake = read("CMakeLists.txt")
         self.assertIn("src/kernel/memory.c", cmake)
         self.assertIn("src/kernel/ipc.c", cmake)
         self.assertIn("src/kernel/critical.c", cmake)
-        self.assertIn("VERSION 0.5.0", cmake)
+        self.assertIn("VERSION 0.6.0", cmake)
         self.assertIn("set(CMAKE_C_EXTENSIONS ON)", cmake)
         self.assertIn("src/arch/armv6m/call_on_stack.S", cmake)
         self.assertIn("src/arch/armv8m/call_on_stack.S", cmake)
@@ -92,23 +101,13 @@ class NovaAlpha05Tests(unittest.TestCase):
         self.assertIn("nova_arch_context_switch", task_source)
         self.assertIn("stack_guard_valid", task_source)
         self.assertIn("nova_task_yield", task_header)
-        self.assertIn("nova_arch_context_switch", task_source)
         self.assertIn("task_bootstrap", task_source)
         self.assertIn("NOVA_INTERRUPT_STACK_WORDS", task_source)
-        arm6 = read("src/arch/armv6m/call_on_stack.S")
-        arm8 = read("src/arch/armv8m/call_on_stack.S")
-        for port in (arm6, arm8):
+        for path in ("src/arch/armv6m/call_on_stack.S", "src/arch/armv8m/call_on_stack.S"):
+            port = read(path)
             self.assertIn("msr psp", port)
             self.assertIn("msr msp", port)
             self.assertIn("msr control", port)
-        arm6 = read("src/arch/armv6m/call_on_stack.S")
-        arm8 = read("src/arch/armv8m/call_on_stack.S")
-        self.assertIn("msr psp", arm6)
-        self.assertIn("msr msp", arm6)
-        self.assertIn("msr control", arm6)
-        self.assertIn("msr psp", arm8)
-        self.assertIn("msr msp", arm8)
-        self.assertIn("msr control", arm8)
         self.assertIn("-Wall", cmake)
         kernel = read("src/kernel/kernel.c")
         self.assertIn("add_repeating_timer_ms", kernel)

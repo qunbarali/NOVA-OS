@@ -1,8 +1,11 @@
-# NOVA OS — Kernel Alpha 0.5.0
+# NOVA OS — Kernel Alpha 0.6.0
 
-NOVA is an independently designed embedded operating system project. Alpha 0.5 adds resumable cooperative task contexts on independent stacks, alongside priority-aware dispatch and task fault containment for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
+NOVA is an independently designed embedded operating system project. Alpha 0.6 hardens per-task stack diagnostics with a correct downward-growing stack high-water scan, building on Alpha 0.5 resumable cooperative task contexts for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
-## Alpha 0.5 features
+## Alpha 0.6 features
+- Correct per-task stack high-water measurement for downward-growing Cortex-M stacks
+- Initial saved context frame included in stack usage baseline
+- Four-word stack guard checks retained; guard corruption faults the task
 - Eight-slot resumable cooperative scheduler with priority-ordered dispatch and round-robin tie-breaking
 - Task creation, suspension, resumption, termination, cooperative yield and resumable sleep
 - Per-task saved stack pointers and architecture-specific Cortex-M0+ / Cortex-M33 context switches
@@ -14,11 +17,11 @@ NOVA is an independently designed embedded operating system project. Alpha 0.5 a
 - Bounded IPC message queues: eight 32-byte messages with variable-length payloads
 - Task-owner-tracked, non-blocking mutex and event-flag primitives
 - Scheduler polling integrated into the USB CDC shell
-- LED demo task: `task demo` / `task stop`
+- LED demo task: task demo / task stop
 - Separate Pico and Pico 2 build targets
 
 ## Windows prerequisites
-Install Git, CMake, Ninja, Python 3, ARM GNU Toolchain (`arm-none-eabi-gcc`) and the Raspberry Pi Pico SDK with its required submodules. Set `PICO_SDK_PATH` to the SDK directory.
+Install Git, CMake, Ninja, Python 3, ARM GNU Toolchain (arm-none-eabi-gcc) and the Raspberry Pi Pico SDK with its required submodules. Set PICO_SDK_PATH to the SDK directory.
 
 ## Build both targets
 
@@ -26,10 +29,10 @@ Install Git, CMake, Ninja, Python 3, ARM GNU Toolchain (`arm-none-eabi-gcc`) and
 .\scripts\build-all.ps1
 ```
 
-Expected outputs: `build-pico\nova_os.uf2` and `build-pico2\nova_os.uf2`.
+Expected outputs: build-pico\nova_os.uf2 and build-pico2\nova_os.uf2.
 
 ## Install and test
-Put the board into BOOTSEL mode, copy the matching UF2 to its `RPI-RP2` drive, then open the USB CDC COM port. Try:
+Put the board into BOOTSEL mode, copy the matching UF2 to its RPI-RP2 drive, then open the USB CDC COM port. Try:
 
 ```text
 version
@@ -43,7 +46,7 @@ tasks
 ```
 
 ## Manual GitHub firmware builds
-Open **Actions → NOVA OS firmware build → Run workflow**. The workflow is manual-only and builds both RP2040 (`pico`) and RP2350 Cortex-M33 (`pico2`) targets using the pinned Pico SDK 2.3.1. It runs source-contract and native scheduler tests, then publishes separate UF2/ELF artifacts for 14 days. No push or pull-request trigger is configured.
+Open Actions → NOVA OS firmware build → Run workflow. The workflow is manual-only and builds both RP2040 (pico) and RP2350 Cortex-M33 (pico2) targets using the pinned Pico SDK 2.3.1. It runs source-contract and native scheduler tests, then publishes separate UF2/ELF artifacts for 14 days. No push or pull-request trigger is configured.
 
 ## Tests
 Run source-contract checks:
@@ -55,6 +58,6 @@ python -m unittest discover -s tests -v
 These checks are not a substitute for compiling both firmware targets or testing on physical boards.
 
 ## Important architecture limitations
-Alpha 0.5 uses cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded, non-blocking and single-core only. No process isolation or general-purpose heap exists yet.
+Alpha 0.6 retains cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded, non-blocking and single-core only. Stack guards and high-water reporting are diagnostics, not MPU protection. No process isolation or general-purpose heap exists yet.
 
-See [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md) and [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
+See [Alpha 0.6 notes](docs/ALPHA_0_6.md), [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md), [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
