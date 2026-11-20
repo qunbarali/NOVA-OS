@@ -6,7 +6,7 @@ if(NOT PICO_SDK_PATH)
     message(FATAL_ERROR "PICO_SDK_PATH is not set. Install the Raspberry Pi Pico SDK and set PICO_SDK_PATH.")
 endif()
 include(pico_sdk_import.cmake)
-project(nova_os VERSION 1.1.0 LANGUAGES C CXX ASM)
+project(nova_os VERSION 1.2.0 LANGUAGES C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -18,6 +18,7 @@ add_executable(nova_os
     src/kernel/crash.c
     src/kernel/critical.c
     src/kernel/smp_lock.c
+    src/kernel/device.c
     src/kernel/memory.c
     src/kernel/ipc.c
     src/hal/board.c
