@@ -1,8 +1,8 @@
-# NOVA OS — Kernel Alpha 0.9.0
+# NOVA OS — Kernel Alpha 1.0.0
 
-NOVA is an independently designed embedded operating system project. Alpha 0.9 adds task stack safety-budget quarantine on top of Alpha 0.8 HardFault capture and Alpha 0.7 task-fault journaling and shell diagnostics, building on Alpha 0.6 stack high-water improvements and Alpha 0.5 resumable cooperative task contexts for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
+NOVA is an independently designed embedded operating system project. Alpha 1.0 adds hardware-spinlock protection for shared IPC and fixed-pool memory, alongside Alpha 0.9 stack safety-budget quarantine on top of Alpha 0.8 HardFault capture and Alpha 0.7 task-fault journaling and shell diagnostics, building on Alpha 0.6 stack high-water improvements and Alpha 0.5 resumable cooperative task contexts for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
-## Alpha 0.9 features
+## Alpha 1.0 features
 - Correct per-task stack high-water measurement for downward-growing Cortex-M stacks
 - Initial saved context frame included in stack usage baseline
 - Four-word stack guard checks retained; guard corruption faults the task
@@ -15,6 +15,7 @@ NOVA is an independently designed embedded operating system project. Alpha 0.9 a
 - Scheduler-detected stack-guard, invalid-result and invalid-return-state fault records
 - Invalid task callback results are isolated as FAULTED slots
 - Core-local interrupt save/restore critical-section API for short core-0 sections
+- RP hardware-spinlock service protecting shared IPC primitives and fixed memory-pool metadata across cores
 - 1 ms hardware timer interrupt with atomic system tick counter
 - Fixed memory pool: eight 32-byte blocks
 - Bounded IPC message queues: eight 32-byte messages with variable-length payloads
@@ -61,6 +62,6 @@ python -m unittest discover -s tests -v
 These checks are not a substitute for compiling both firmware targets or testing on physical boards.
 
 ## Important architecture limitations
-Alpha 0.9 retains cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded, non-blocking and single-core only. Stack guards and high-water reporting are diagnostics, not MPU protection. No process isolation or general-purpose heap exists yet.
+Alpha 1.0 retains cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded and protected by an RP hardware spinlock; task scheduling remains core-0-only. Stack guards and high-water reporting are diagnostics, not MPU protection. No process isolation or general-purpose heap exists yet.
 
-See [Alpha 0.9 notes](docs/ALPHA_0_9.md), [Alpha 0.8 notes](docs/ALPHA_0_8.md), [Alpha 0.7 notes](docs/ALPHA_0_7.md), [Alpha 0.6 notes](docs/ALPHA_0_6.md), [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md), [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
+See [Alpha 1.0 notes](docs/ALPHA_1_0.md), [Alpha 0.9 notes](docs/ALPHA_0_9.md), [Alpha 0.8 notes](docs/ALPHA_0_8.md), [Alpha 0.7 notes](docs/ALPHA_0_7.md), [Alpha 0.6 notes](docs/ALPHA_0_6.md), [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md), [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
