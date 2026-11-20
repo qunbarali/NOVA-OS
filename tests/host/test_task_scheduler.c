@@ -10,6 +10,19 @@ static unsigned task_exit_runs;
 static unsigned task_fault_runs;
 static unsigned execution_order[8];
 static unsigned order_count;
+static unsigned block_stage;
+static unsigned block_resumed;
+static nova_task_result_t task_block_once(void *context) {
+    (void)context;
+    if (block_stage == 0u) {
+        block_stage = 1u;
+        assert(nova_task_prepare_block(10u));
+        nova_task_commit_block();
+    } else {
+        ++block_resumed;
+    }
+    return NOVA_TASK_AGAIN;
+}
 
 static nova_task_result_t task_a(void *context) {
     (void)context;
@@ -102,6 +115,29 @@ int main(void) {
     assert(strcmp(fault_records[0].task_name, "bad") == 0);
     assert(nova_task_terminate(bad));
     assert(nova_task_count() == 0u);
+
+    nova_task_init();
+    block_stage = 0u;
+    block_resumed = 0u;
+    nova_task_id_t blocked = nova_task_create("waiter", task_block_once, NULL);
+    assert(blocked != NOVA_TASK_ID_INVALID);
+    nova_task_scheduler_poll(200u);
+    assert(nova_task_snapshot(snapshot, NOVA_TASK_MAX) == 1u);
+    assert(snapshot[0].state == NOVA_TASK_BLOCKED);
+    nova_task_scheduler_poll(209u);
+    assert(block_resumed == 0u);
+    nova_task_scheduler_poll(210u);
+    assert(block_resumed == 1u);
+
+    nova_task_init();
+    block_stage = 0u;
+    block_resumed = 0u;
+    blocked = nova_task_create("wakeup", task_block_once, NULL);
+    assert(blocked != NOVA_TASK_ID_INVALID);
+    nova_task_scheduler_poll(300u);
+    assert(nova_task_wake(blocked));
+    nova_task_scheduler_poll(301u);
+    assert(block_resumed == 1u);
 
     puts("NOVA host scheduler tests passed.");
     return 0;
