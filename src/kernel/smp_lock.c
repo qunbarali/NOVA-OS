@@ -6,7 +6,6 @@ void nova_smp_lock_release(nova_smp_lock_state_t state) { (void)state; }
 #else
 #include "nova/smp_lock.h"
 #include <stdbool.h>
-#include <stdbool.h>
 #include "hardware/sync.h"
 
 static spin_lock_t *kernel_lock;
