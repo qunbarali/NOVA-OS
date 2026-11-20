@@ -1,4 +1,5 @@
 #include "nova/device.h"
+#include <stdbool.h>
 #include "nova/smp_lock.h"
 #include <string.h>
 
@@ -17,8 +18,9 @@ int nova_device_register(const nova_device_t *device) {
         device->device_class < NOVA_DEVICE_GPIO || device->device_class > NOVA_DEVICE_SENSOR ||
         (device->capabilities & ~(NOVA_DEVICE_CAP_READ | NOVA_DEVICE_CAP_WRITE | NOVA_DEVICE_CAP_CTRL)) != 0u)
         return -1;
-    size_t length = strlen(device->name);
-    if (length > NOVA_DEVICE_NAME_MAX) return -1;
+    size_t length = 0u;
+    while (length <= NOVA_DEVICE_NAME_MAX && device->name[length] != 0) ++length;
+    if (length == 0u || length > NOVA_DEVICE_NAME_MAX) return -1;
     nova_smp_lock_state_t lock = nova_smp_lock_acquire();
     if (device_count_value >= NOVA_DEVICE_MAX) {
         nova_smp_lock_release(lock);
