@@ -86,9 +86,10 @@ static void initialize_stack(task_control_t *task) {
     entry_pc = (uintptr_t)(void (*)(void))task_bootstrap;
 #endif
     *--sp = entry_pc;
-#if defined(NOVA_ARCH_ARMV6M) || defined(NOVA_ARCH_ARMV8M)
+#if defined(NOVA_ARCH_ARMV6M) || defined(NOVA_ARCH_ARMV8M) || defined(NOVA_HOST_TEST)
+    /* Model the eight saved callee registers in the host stack watermark test too. */
     for (size_t i = 0u; i < 8u; ++i) *--sp = 0u;
-#elif !defined(NOVA_HOST_TEST)
+#else
 #error "Select a NOVA Cortex-M architecture port"
 #endif
     task->saved_sp = (uintptr_t)sp;
