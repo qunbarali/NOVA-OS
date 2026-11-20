@@ -4,6 +4,7 @@
 #include "nova/kernel.h"
 #include "nova/task.h"
 #include "nova/memory.h"
+#include "nova/smp_lock.h"
 
 static absolute_time_t boot_time;
 static repeating_timer_t system_timer;
@@ -19,6 +20,7 @@ static bool nova_tick_callback(repeating_timer_t *timer) {
 }
 
 void nova_kernel_init(void) {
+    nova_smp_lock_init();
     boot_time = get_absolute_time();
     __atomic_store_n(&system_ticks, 0u, __ATOMIC_RELAXED);
     __atomic_store_n(&core1_heartbeat, 0u, __ATOMIC_RELAXED);
