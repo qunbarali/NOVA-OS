@@ -28,6 +28,7 @@ class NovaAlpha07Tests(unittest.TestCase):
     def test_priority_fault_and_critical_section_foundations(self):
         header = read("include/nova/task.h")
         source = read("src/kernel/task.c")
+        shell = read("src/shell/shell.c")
         critical_h = read("include/nova/critical.h")
         critical_c = read("src/kernel/critical.c")
         self.assertIn("nova_task_set_priority", header)
