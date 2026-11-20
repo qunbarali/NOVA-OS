@@ -2,6 +2,7 @@
 #include <string.h>
 #ifndef NOVA_HOST_TEST
 #include "pico/multicore.h"
+#include "pico/platform.h"
 #endif
 #define NOVA_STACK_GUARD_WORD 0x4E4F5641u
 #define NOVA_STACK_FILL_WORD 0xA5A5A5A5u
@@ -28,6 +29,13 @@ static nova_task_id_t current_task = NOVA_TASK_ID_INVALID;
 static uint8_t next_slot;
 static uint32_t dispatches, faults, scheduler_now_ms;
 static bool scheduler_active;
+static bool scheduler_core(void) {
+#ifndef NOVA_HOST_TEST
+    return get_core_num() == 0u;
+#else
+    return true;
+#endif
+}
 static volatile uint8_t wake_pending[NOVA_TASK_MAX];
 static nova_fault_record_t fault_log[NOVA_FAULT_LOG_CAPACITY];
 static uint32_t fault_sequence;
@@ -176,12 +184,7 @@ void nova_task_sleep_current(uint32_t delay_ms) {
     task->info.wake_at_ms = scheduler_now_ms + delay_ms;
     task->info.state = NOVA_TASK_SLEEPING; switch_current_to_scheduler();
 }
-nova_task_id_t nova_task_current_id(void) {
-#ifndef NOVA_HOST_TEST
-    if (get_core_num() != 0u) return NOVA_TASK_ID_INVALID;
-#endif
-    return current_task;
-}
+nova_task_id_t nova_task_current_id(void) { return scheduler_core() ? current_task : NOVA_TASK_ID_INVALID; }
 void nova_task_scheduler_poll(uint32_t now_ms) {
     if (scheduler_active) return;
     scheduler_active = true; scheduler_now_ms = now_ms;
