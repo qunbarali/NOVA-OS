@@ -186,6 +186,8 @@ void nova_task_scheduler_poll(uint32_t now_ms) {
         current_task = NOVA_TASK_ID_INVALID; update_stack_usage(task);
         if (!stack_guard_valid(task)) {
             record_task_fault(task, NOVA_FAULT_STACK_GUARD);
+        } else if (task->info.stack_used_bytes >= NOVA_TASK_STACK_LIMIT_BYTES) {
+            record_task_fault(task, NOVA_FAULT_STACK_LIMIT);
         } else if (task->completed) {
             if (task->result == NOVA_TASK_EXIT) memset(task, 0, sizeof(*task));
             else if (task->result != NOVA_TASK_AGAIN) {
