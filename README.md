@@ -1,8 +1,8 @@
-# NOVA OS — Kernel Alpha 1.1.0
+# NOVA OS — Kernel Alpha 1.2.0
 
-NOVA is an independently designed embedded operating system project. Alpha 1.1 adds task blocking, timeout-aware queue operations and event wait queues on top of Alpha 1.0 hardware-spinlock protection for shared IPC and fixed-pool memory, alongside Alpha 0.9 stack safety-budget quarantine on top of Alpha 0.8 HardFault capture and Alpha 0.7 task-fault journaling and shell diagnostics, building on Alpha 0.6 stack high-water improvements and Alpha 0.5 resumable cooperative task contexts for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
+NOVA is an independently designed embedded operating system project. Alpha 1.2 adds a static device manager and board-driver registration on top of Alpha 1.1 blocking IPC and Alpha 1.0 shared-service synchronization on top of Alpha 1.0 hardware-spinlock protection for shared IPC and fixed-pool memory, alongside Alpha 0.9 stack safety-budget quarantine on top of Alpha 0.8 HardFault capture and Alpha 0.7 task-fault journaling and shell diagnostics, building on Alpha 0.6 stack high-water improvements and Alpha 0.5 resumable cooperative task contexts for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
-## Alpha 1.1 features
+## Alpha 1.2 features
 - Correct per-task stack high-water measurement for downward-growing Cortex-M stacks
 - Initial saved context frame included in stack usage baseline
 - Four-word stack guard checks retained; guard corruption faults the task
@@ -10,6 +10,8 @@ NOVA is an independently designed embedded operating system project. Alpha 1.1 a
 - Eight-slot resumable cooperative scheduler with priority-ordered dispatch and round-robin tie-breaking
 - Task creation, suspension, resumption, termination, cooperative yield, resumable sleep and blocked wait states
 - Timeout-aware blocking queue send/receive and event-flag waits
+- Static device registry with typed classes, capability flags and driver read/write/control operations
+- Onboard LED exposed as the `led0` GPIO device; inspect with `devices`
 - Per-task saved stack pointers and architecture-specific Cortex-M0+ / Cortex-M33 context switches
 - Task state, priority and dispatch diagnostics
 - Bounded eight-entry task fault journal with sequence, tick, task identity and reason; inspect with `faults`
@@ -63,6 +65,6 @@ python -m unittest discover -s tests -v
 These checks are not a substitute for compiling both firmware targets or testing on physical boards.
 
 ## Important architecture limitations
-Alpha 1.0 retains cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded and protected by an RP hardware spinlock; task scheduling remains core-0-only. Stack guards and high-water reporting are diagnostics, not MPU protection. No process isolation or general-purpose heap exists yet.
+Alpha 1.0 retains cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex, event, device registry and fixed-pool metadata are protected by an RP hardware spinlock; task scheduling remains core-0-only. Stack guards and high-water reporting are diagnostics, not MPU protection. No process isolation or general-purpose heap exists yet.
 
-See [Alpha 1.1 notes](docs/ALPHA_1_1.md), [Alpha 1.0 notes](docs/ALPHA_1_0.md), [Alpha 0.9 notes](docs/ALPHA_0_9.md), [Alpha 0.8 notes](docs/ALPHA_0_8.md), [Alpha 0.7 notes](docs/ALPHA_0_7.md), [Alpha 0.6 notes](docs/ALPHA_0_6.md), [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md), [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
+See [Alpha 1.2 notes](docs/ALPHA_1_2.md), [Alpha 1.1 notes](docs/ALPHA_1_1.md), [Alpha 1.0 notes](docs/ALPHA_1_0.md), [Alpha 0.9 notes](docs/ALPHA_0_9.md), [Alpha 0.8 notes](docs/ALPHA_0_8.md), [Alpha 0.7 notes](docs/ALPHA_0_7.md), [Alpha 0.6 notes](docs/ALPHA_0_6.md), [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md), [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
