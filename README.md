@@ -39,6 +39,9 @@ task stop
 tasks
 ```
 
+## Manual GitHub firmware builds
+Open **Actions → NOVA OS firmware build → Run workflow**. The workflow is manual-only and builds both RP2040 (`pico`) and RP2350 Cortex-M33 (`pico2`) targets using the pinned Pico SDK 2.3.1. It runs source-contract and native scheduler tests, then publishes separate UF2/ELF artifacts for 14 days. No push or pull-request trigger is configured.
+
 ## Tests
 Run source-contract checks:
 
