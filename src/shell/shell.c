@@ -11,7 +11,7 @@
 #include "nova/crash.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "0.9.0"
+#define NOVA_VERSION "1.0.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
