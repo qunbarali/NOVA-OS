@@ -1,0 +1,21 @@
+#include "pico/stdlib.h"
+#include "pico/multicore.h"
+#include "nova/kernel.h"
+#include "nova/board.h"
+#include "nova/shell.h"
+
+int main(void) {
+    stdio_init_all();
+    sleep_ms(1200); /* Allow a USB CDC terminal to attach. */
+
+    nova_board_init();
+    nova_kernel_init();
+    multicore_launch_core1(nova_core1_entry);
+
+    nova_shell_write("\n\nNOVA OS Kernel Alpha 0.1.1\n");
+    nova_shell_write("Independent embedded OS research build\n");
+    nova_shell_write("Type 'help' to list commands.\n\n");
+
+    nova_shell_run();
+    return 0;
+}
