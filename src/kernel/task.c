@@ -162,7 +162,7 @@ bool nova_task_prepare_block(uint32_t timeout_ms) {
     if (nova_task_current_id() == NOVA_TASK_ID_INVALID) return false;
     task_control_t *task = &tasks[current_task];
     if (task->info.state != NOVA_TASK_RUNNING) return false;
-    __atomic_store_n(&wake_pending[current_task], 0u, __ATOMIC_RELAXED);
+    __atomic_store_n(&wake_pending[current_task], (uint8_t)0u, __ATOMIC_RELAXED);
     task->info.wake_at_ms = timeout_ms == 0u ? 0u : scheduler_now_ms + timeout_ms;
     task->info.state = NOVA_TASK_BLOCKED;
     return true;
@@ -173,7 +173,7 @@ void nova_task_commit_block(void) {
 }
 bool nova_task_wake(nova_task_id_t id) {
     if (id >= NOVA_TASK_MAX) return false;
-    __atomic_store_n(&wake_pending[id], 1u, __ATOMIC_RELEASE);
+    __atomic_store_n(&wake_pending[id], (uint8_t)1u, __ATOMIC_RELEASE);
     return true;
 }
 uint32_t nova_task_now_ms(void) { return scheduler_now_ms; }
