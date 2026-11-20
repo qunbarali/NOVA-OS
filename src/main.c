@@ -10,7 +10,7 @@ int main(void) {
     nova_board_init();
     nova_kernel_init();
     multicore_launch_core1(nova_core1_entry);
-    nova_shell_write("\n\nNOVA OS Kernel Alpha 1.0.0\n");
+    nova_shell_write("\n\nNOVA OS Kernel Alpha 1.1.0\n");
     nova_shell_write("Independent embedded OS research build\n");
     nova_shell_write("Type 'help' to list commands.\n\n");
     nova_shell_run();
