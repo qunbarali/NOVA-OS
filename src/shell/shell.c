@@ -86,14 +86,14 @@ static void execute(const char *line) {
     } else if (!strcmp(line, "faults")) {
         nova_fault_record_t records[NOVA_FAULT_LOG_CAPACITY];
         size_t count = nova_task_fault_snapshot(records, NOVA_FAULT_LOG_CAPACITY);
-        printf("Task fault journal: %lu/%u retained; total faults: %lu\\n",
+        printf("Task fault journal: %lu/%u retained; total faults: %lu\n",
                (unsigned long)count, (unsigned)NOVA_FAULT_LOG_CAPACITY,
                (unsigned long)nova_task_fault_count());
         for (size_t i = 0u; i < count; ++i) {
             const char *reason = records[i].reason == NOVA_FAULT_STACK_GUARD ? "STACK_GUARD" :
                 records[i].reason == NOVA_FAULT_INVALID_TASK_RESULT ? "INVALID_RESULT" :
                 records[i].reason == NOVA_FAULT_TASK_RETURNED_RUNNING ? "BAD_RETURN_STATE" : "UNKNOWN";
-            printf("  #%lu t=%lu ms task=%u %-12s %s\\n",
+            printf("  #%lu t=%lu ms task=%u %-12s %s\n",
                    (unsigned long)records[i].sequence, (unsigned long)records[i].tick_ms,
                    (unsigned)records[i].task_id, records[i].task_name, reason);
         }
