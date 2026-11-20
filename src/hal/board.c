@@ -22,8 +22,8 @@ bool nova_led_get(void) { return led_state; }
 const char *nova_board_name(void) {
 #if PICO_RP2350
     return "Raspberry Pi Pico 2 family";
-#elif defined(PICO_BOARD pico)
-    return "Raspberry Pi Pico family";
+#elif PICO_RP2040
+    return "Raspberry Pi Pico (RP2040)";
 #else
     return "RP-series compatible board";
 #endif
