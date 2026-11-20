@@ -66,7 +66,7 @@ The committed Python tests are source-contract checks. Add/run runtime tests for
 
 ## F. Exit criteria
 
-Alpha 0.2 source implementation is committed. Do not call the milestone build-verified until both firmware targets compile. Do not call it hardware-validated until all board checks above pass on both physical boards and runtime kernel-service tests have been recorded.
+Alpha 0.3 scheduler reliability foundations are committed. Do not call this milestone build-verified until both firmware targets compile. Do not call it hardware-validated until all board checks above pass on both physical boards and runtime kernel-service tests have been recorded.
 
 ## G. Safety
 
