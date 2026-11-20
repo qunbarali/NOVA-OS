@@ -48,6 +48,12 @@ class NovaAlpha07Tests(unittest.TestCase):
         self.assertIn("nova_critical_enter", critical_h)
         self.assertIn("save_and_disable_interrupts", critical_c)
         self.assertIn("restore_interrupts", critical_c)
+        smp = read("src/kernel/smp_lock.c")
+        self.assertIn("spin_lock_claim_unused", smp)
+        self.assertIn("spin_lock_blocking", smp)
+        self.assertIn("nova_smp_lock_init", read("src/kernel/kernel.c"))
+        self.assertIn("nova_smp_lock_acquire", read("src/kernel/ipc.c"))
+        self.assertIn("nova_smp_lock_acquire", read("src/kernel/memory.c"))
 
     def test_pool_has_fixed_capacity(self):
         header = read("include/nova/memory.h")
@@ -73,7 +79,7 @@ class NovaAlpha07Tests(unittest.TestCase):
         self.assertIn("nova_system_ticks()", shell)
         self.assertIn("nova_kernel_timer_ready()", shell)
         self.assertIn("nova_task_fault_count()", shell)
-        self.assertIn('NOVA_VERSION "0.9.0"', shell)
+        self.assertIn('NOVA_VERSION "1.0.0"', shell)
         self.assertIn("stack_used_bytes", shell)
         self.assertIn("(high-water)", shell)
 
@@ -101,9 +107,10 @@ class NovaAlpha07Tests(unittest.TestCase):
         self.assertIn("src/kernel/ipc.c", cmake)
         self.assertIn("src/kernel/critical.c", cmake)
         self.assertIn("src/kernel/crash.c", cmake)
+        self.assertIn("src/kernel/smp_lock.c", cmake)
         self.assertIn("src/arch/armv6m/fault_entry.S", cmake)
         self.assertIn("src/arch/armv8m/fault_entry.S", cmake)
-        self.assertIn("VERSION 0.9.0", cmake)
+        self.assertIn("VERSION 1.0.0", cmake)
         self.assertIn("set(CMAKE_C_EXTENSIONS ON)", cmake)
         self.assertIn("src/arch/armv6m/call_on_stack.S", cmake)
         self.assertIn("src/arch/armv8m/call_on_stack.S", cmake)
