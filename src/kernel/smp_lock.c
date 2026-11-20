@@ -1,4 +1,5 @@
 #include "nova/smp_lock.h"
+#include <stdbool.h>
 #include "hardware/sync.h"
 
 static spin_lock_t *kernel_lock;
