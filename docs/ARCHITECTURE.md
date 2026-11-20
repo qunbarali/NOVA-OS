@@ -18,7 +18,7 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - A repeating 1 ms hardware timer callback increments an atomic system tick counter.
 - Core 1 runs a diagnostic heartbeat service; it is not a second scheduler.
 - Task callbacks run on persistent per-task stacks. They may yield or sleep and resume at the instruction following that call; returning NOVA_TASK_AGAIN rebuilds the stack and restarts the callback, while NOVA_TASK_EXIT terminates it.
-- Scheduler-detected task faults move the task to a FAULTED state; the slot remains inspectable and must be explicitly terminated. A bounded eight-entry journal records sequence, scheduler tick, task ID/name and reason; the `faults` command displays retained records. This is not yet CPU exception or HardFault capture.
+- Scheduler-detected task faults move the task to a FAULTED state; the slot remains inspectable and must be explicitly terminated. A bounded eight-entry journal records sequence, scheduler tick, task ID/name and reason; the `faults` command displays retained records. Cortex-M HardFault entry stubs capture a compact basic exception frame into watchdog scratch registers, request watchdog reboot and expose the retained record through `crash`; this is not a complete crash dump or exception recovery system.
 - Each task owns a fixed 512-byte, 8-byte-aligned stack. Architecture-specific context-switch routines save and restore task registers and PSP state on Cortex-M0+ and Cortex-M33. Task code runs on PSP, while a dedicated 1 KiB MSP stack serves exception handlers during task execution.
 - Four guard words detect writes into the low-address stack boundary; a low-address-first fill-pattern scan reports the deepest touched stack address as a high-water estimate. Guard corruption marks the task FAULTED.
 - Task call chains persist across cooperative yields and sleeps. Scheduling remains non-preemptive: a task that does not yield, sleep, or return can monopolize core 0. Tasks share one address space and privilege level; process isolation is not implemented.
@@ -26,7 +26,7 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - A static device manager registers up to eight named devices with class, capability flags, driver operations and context. The board layer registers the onboard LED as `led0`; shell inventory is available through `devices`. This registry is not yet a security capability system and has no hot-unplug or driver lifetime management.
 - IPC provides an eight-entry, 32-byte-per-message queue, task-owner-tracked non-blocking mutexes and event flags. Tasks can block on queue send/receive and event waits with optional millisecond timeouts; the scheduler resumes them on wake requests or timeout.
 - Core-local interrupt save/restore critical sections are available for short core-0 sections. They do not disable interrupts on the other core and are not an SMP lock.
-- Queue, mutex, event and fixed-pool metadata operations use a shared RP hardware spinlock. Wake requests use an atomic pending bit consumed by the core-0 scheduler. The task scheduler and task-control structures remain core-0-only; core 1 must not create, suspend, block, or inspect tasks. Blocking queue/event calls require a running core-0 task. The lock APIs are not ISR-reentrant.
+- Queue, mutex, event, device-registry and fixed-pool metadata operations use a shared RP hardware spinlock. Wake requests use an atomic pending bit consumed by the core-0 scheduler. The task scheduler and task-control structures remain core-0-only; core 1 must not create, suspend, block, or inspect tasks. Blocking queue/event calls require a running core-0 task. The lock APIs are not ISR-reentrant.
 - The shell has a bounded line buffer and rejects overlong commands.
 - The memory command reports physical SRAM capacity and fixed-pool availability, not total free SRAM.
 - This is an embedded kernel foundation, not yet a protected microkernel with process isolation.
@@ -35,9 +35,7 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 1. Complete exception diagnostics, configurable stack budgets and recovery policies
 2. Interrupt-safe critical sections and priority-aware synchronization
 3. General memory allocator and per-task resource accounting
-4. Blocking IPC, wait queues and event subscriptions
-5. Block device interface, removable storage and filesystem
-6. Block device interface and filesystem
+4. Block device interface, removable storage and filesystem
 7. USB device/host services
 8. Native executable loader/runtime
 9. Shell, display manager and GUI
