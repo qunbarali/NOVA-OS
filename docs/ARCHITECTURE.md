@@ -12,7 +12,7 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - Interfaces are versioned; optional hardware is exposed through capability discovery.
 - Recovery must remain possible if a NOVA image is damaged.
 
-## Current Alpha 0.7 execution model
+## Current Alpha 1.0 execution model
 - Core 0 initializes the board/kernel and owns the USB CDC command shell.
 - Core 0 runs an eight-slot cooperative state-machine scheduler from the shell's polling loop. Ready tasks are dispatched by numeric priority (lower value first); equal-priority tasks use rotating scan order.
 - A repeating 1 ms hardware timer callback increments an atomic system tick counter.
@@ -25,13 +25,13 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - A fixed memory pool provides eight 32-byte blocks; it is not a general-purpose heap.
 - IPC currently provides an eight-entry, 32-byte-per-message queue, task-owner-tracked non-blocking mutexes and event flags.
 - Core-local interrupt save/restore critical sections are available for short core-0 sections. They do not disable interrupts on the other core and are not an SMP lock.
-- Queue/mutex/event primitives are single-core only and are not safe for concurrent core-1 use.
+- Queue, mutex, event and fixed-pool metadata operations use a shared RP hardware spinlock; this protects those data structures across cores. The task scheduler and task-control structures remain core-0-only; core 1 must not create, suspend, wake or inspect tasks. These lock APIs are not ISR-reentrant.
 - The shell has a bounded line buffer and rejects overlong commands.
 - The memory command reports physical SRAM capacity and fixed-pool availability, not total free SRAM.
 - This is an embedded kernel foundation, not yet a protected microkernel with process isolation.
 
 ## Planned kernel services
-1. CPU exception frames, architecture fault entry and stronger stack protection
+1. Complete exception diagnostics, configurable stack budgets and recovery policies
 2. Interrupt-safe critical sections and priority-aware synchronization
 3. General memory allocator and per-task resource accounting
 4. Blocking IPC, wait queues and event subscriptions
