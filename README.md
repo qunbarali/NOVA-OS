@@ -3,12 +3,12 @@
 NOVA is an independently designed embedded operating system project. Alpha 0.2 adds bounded cooperative task scheduling and foundational kernel services for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
 ## Alpha 0.2 features
-- Eight-slot cooperative state-machine task scheduler
+- Eight-slot cooperative state-machine task scheduler with round-robin scan
 - Task creation, suspension, resumption, termination and sleep
 - Task state and dispatch diagnostics
 - Fixed memory pool: eight 32-byte blocks
-- Bounded IPC message queues: eight 32-byte messages
-- Non-blocking mutex and event-flag primitives
+- Bounded IPC message queues: eight 32-byte messages with variable-length payloads
+- Task-owner-tracked, non-blocking mutex and event-flag primitives
 - Scheduler polling integrated into the USB CDC shell
 - LED demo task: `task demo` / `task stop`
 - Separate Pico and Pico 2 build targets

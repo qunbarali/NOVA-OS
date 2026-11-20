@@ -19,8 +19,6 @@ typedef enum {
     NOVA_TASK_SUSPENDED
 } nova_task_state_t;
 
-/* A task is a short, non-blocking state-machine step. Return AGAIN to be
- * scheduled on a later poll, or EXIT to release its task slot. */
 typedef enum {
     NOVA_TASK_AGAIN = 0,
     NOVA_TASK_EXIT
@@ -43,6 +41,7 @@ bool nova_task_resume(nova_task_id_t id);
 bool nova_task_terminate(nova_task_id_t id);
 void nova_task_sleep_current(uint32_t delay_ms);
 void nova_task_yield_current(void);
+nova_task_id_t nova_task_current_id(void);
 void nova_task_scheduler_poll(uint32_t now_ms);
 size_t nova_task_snapshot(nova_task_info_t *out, size_t capacity);
 size_t nova_task_count(void);

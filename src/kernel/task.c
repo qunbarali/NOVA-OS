@@ -14,7 +14,7 @@ static uint8_t next_slot;
 static uint32_t dispatches;
 
 static bool deadline_reached(uint32_t now, uint32_t deadline) {
-    return (int32_t)(now - deadline) >= 0;
+    return (uint32_t)(now - deadline) < 0x80000000u;
 }
 
 void nova_task_init(void) {
@@ -75,6 +75,8 @@ void nova_task_sleep_current(uint32_t delay_ms) {
 void nova_task_yield_current(void) {
     if (current_task < NOVA_TASK_MAX) tasks[current_task].sleep_requested = false;
 }
+
+nova_task_id_t nova_task_current_id(void) { return current_task; }
 
 void nova_task_scheduler_poll(uint32_t now_ms) {
     for (uint8_t i = 0u; i < NOVA_TASK_MAX; ++i) {

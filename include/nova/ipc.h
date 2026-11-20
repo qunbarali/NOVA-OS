@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "nova/task.h"
 #define NOVA_QUEUE_CAPACITY 8u
 #define NOVA_QUEUE_MESSAGE_SIZE 32u
 
@@ -14,7 +15,11 @@ typedef struct {
     uint8_t count;
 } nova_queue_t;
 
-typedef struct { bool locked; } nova_mutex_t;
+typedef struct {
+    bool locked;
+    nova_task_id_t owner;
+} nova_mutex_t;
+
 typedef struct { uint32_t flags; } nova_event_t;
 
 void nova_queue_init(nova_queue_t *queue);

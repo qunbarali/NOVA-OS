@@ -15,7 +15,7 @@ class NovaAlpha02Tests(unittest.TestCase):
         self.assertIn("Board = 'pico2'", script)
         self.assertIn("PICO_SDK_PATH", script)
 
-    def test_scheduler_is_bounded_and_cooperative(self):
+    def test_scheduler_is_bounded_fair_and_cooperative(self):
         header = read("include/nova/task.h")
         source = read("src/kernel/task.c")
         self.assertIn("NOVA_TASK_MAX 8u", header)
@@ -23,6 +23,7 @@ class NovaAlpha02Tests(unittest.TestCase):
         self.assertIn("nova_task_scheduler_poll", source)
         self.assertIn("NOVA_TASK_SLEEPING", source)
         self.assertIn("scan_start", source)
+        self.assertIn("nova_task_current_id", source)
 
     def test_pool_has_fixed_capacity(self):
         header = read("include/nova/memory.h")
@@ -38,6 +39,7 @@ class NovaAlpha02Tests(unittest.TestCase):
         self.assertIn("NOVA_QUEUE_MESSAGE_SIZE 32u", header)
         self.assertIn("lengths[NOVA_QUEUE_CAPACITY]", header)
         self.assertIn("capacity < length", source)
+        self.assertIn("mutex->owner != caller", source)
 
     def test_shell_polls_scheduler(self):
         shell = read("src/shell/shell.c")
