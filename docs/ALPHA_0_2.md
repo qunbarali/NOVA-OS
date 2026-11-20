@@ -8,7 +8,7 @@
 - Bounded message queue (8 messages x 32 bytes), preserving each message's actual length.
 - Task-owner-tracked, non-blocking mutex primitive.
 - Event flag set/get/clear primitives.
-- Kernel poll integration into the USB CDC shell loop.
+- 1 ms repeating hardware timer interrupt and atomic system tick counter.\n- Kernel poll integration into the USB CDC shell loop.
 - Interactive LED demonstration task (`task demo`, `task stop`).
 - Updated shell diagnostics and source-contract tests.
 

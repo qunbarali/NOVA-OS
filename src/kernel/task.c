@@ -72,10 +72,6 @@ void nova_task_sleep_current(uint32_t delay_ms) {
     task->sleep_requested = true;
 }
 
-void nova_task_yield_current(void) {
-    if (current_task < NOVA_TASK_MAX) tasks[current_task].sleep_requested = false;
-}
-
 nova_task_id_t nova_task_current_id(void) { return current_task; }
 
 void nova_task_scheduler_poll(uint32_t now_ms) {

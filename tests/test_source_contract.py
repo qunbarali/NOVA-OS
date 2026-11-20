@@ -23,7 +23,7 @@ class NovaAlpha02Tests(unittest.TestCase):
         self.assertIn("nova_task_scheduler_poll", source)
         self.assertIn("NOVA_TASK_SLEEPING", source)
         self.assertIn("scan_start", source)
-        self.assertIn("nova_task_current_id", source)
+        self.assertIn("nova_task_current_id", source)\n        self.assertIn("scan_start", source)
 
     def test_pool_has_fixed_capacity(self):
         header = read("include/nova/memory.h")
@@ -50,7 +50,7 @@ class NovaAlpha02Tests(unittest.TestCase):
     def test_build_includes_kernel_services(self):
         cmake = read("CMakeLists.txt")
         self.assertIn("src/kernel/memory.c", cmake)
-        self.assertIn("src/kernel/ipc.c", cmake)
+        self.assertIn("src/kernel/ipc.c", cmake)\n        kernel = read("src/kernel/kernel.c")\n        self.assertIn("add_repeating_timer_ms", kernel)\n        self.assertIn("nova_system_ticks", kernel)
         self.assertIn("-Wall", cmake)
 
 

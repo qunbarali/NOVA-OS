@@ -40,7 +40,6 @@ bool nova_task_suspend(nova_task_id_t id);
 bool nova_task_resume(nova_task_id_t id);
 bool nova_task_terminate(nova_task_id_t id);
 void nova_task_sleep_current(uint32_t delay_ms);
-void nova_task_yield_current(void);
 nova_task_id_t nova_task_current_id(void);
 void nova_task_scheduler_poll(uint32_t now_ms);
 size_t nova_task_snapshot(nova_task_info_t *out, size_t capacity);

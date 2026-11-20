@@ -5,7 +5,7 @@ NOVA is an independently designed embedded operating system project. Alpha 0.2 a
 ## Alpha 0.2 features
 - Eight-slot cooperative state-machine task scheduler with round-robin scan
 - Task creation, suspension, resumption, termination and sleep
-- Task state and dispatch diagnostics
+- Task state and dispatch diagnostics\n- 1 ms hardware timer interrupt with atomic system tick counter
 - Fixed memory pool: eight 32-byte blocks
 - Bounded IPC message queues: eight 32-byte messages with variable-length payloads
 - Task-owner-tracked, non-blocking mutex and event-flag primitives
