@@ -1,4 +1,11 @@
+#ifdef NOVA_HOST_TEST
 #include "nova/smp_lock.h"
+void nova_smp_lock_init(void) { }
+nova_smp_lock_state_t nova_smp_lock_acquire(void) { return 0u; }
+void nova_smp_lock_release(nova_smp_lock_state_t state) { (void)state; }
+#else
+#include "nova/smp_lock.h"
+#include <stdbool.h>
 #include <stdbool.h>
 #include "hardware/sync.h"
 
@@ -21,3 +28,5 @@ nova_smp_lock_state_t nova_smp_lock_acquire(void) {
 void nova_smp_lock_release(nova_smp_lock_state_t state) {
     if (kernel_lock_ready) spin_unlock(kernel_lock, state);
 }
+
+#endif
