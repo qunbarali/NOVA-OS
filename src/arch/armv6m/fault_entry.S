@@ -2,9 +2,11 @@
 .cpu cortex-m0plus
 .thumb
 .global HardFault_Handler
+.global isr_hardfault
 .type HardFault_Handler, %function
 .thumb_func
 HardFault_Handler:
+isr_hardfault:
     mov r1, lr
     movs r2, #4
     tst r1, r2
