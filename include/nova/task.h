@@ -7,12 +7,13 @@
 #define NOVA_TASK_NAME_MAX 12u
 #define NOVA_TASK_PRIORITY_DEFAULT 128u
 #define NOVA_TASK_STACK_SIZE 512u
+#define NOVA_TASK_STACK_LIMIT_BYTES 480u
 #define NOVA_FAULT_LOG_CAPACITY 8u
 typedef uint8_t nova_task_id_t;
 #define NOVA_TASK_ID_INVALID ((nova_task_id_t)0xFFu)
 typedef enum { NOVA_TASK_UNUSED=0, NOVA_TASK_READY, NOVA_TASK_RUNNING, NOVA_TASK_SLEEPING, NOVA_TASK_SUSPENDED, NOVA_TASK_FAULTED } nova_task_state_t;
 typedef enum { NOVA_TASK_AGAIN=0, NOVA_TASK_EXIT } nova_task_result_t;
-typedef enum { NOVA_FAULT_NONE=0, NOVA_FAULT_STACK_GUARD, NOVA_FAULT_INVALID_TASK_RESULT, NOVA_FAULT_TASK_RETURNED_RUNNING } nova_fault_reason_t;
+typedef enum { NOVA_FAULT_NONE=0, NOVA_FAULT_STACK_GUARD, NOVA_FAULT_INVALID_TASK_RESULT, NOVA_FAULT_TASK_RETURNED_RUNNING, NOVA_FAULT_STACK_LIMIT } nova_fault_reason_t;
 typedef struct { uint32_t sequence; uint32_t tick_ms; nova_task_id_t task_id; nova_fault_reason_t reason; char task_name[NOVA_TASK_NAME_MAX + 1u]; } nova_fault_record_t;
 /* Callbacks retain local variables across yield/sleep. AGAIN restarts the callback; EXIT terminates it. */
 typedef nova_task_result_t (*nova_task_entry_t)(void *context);
