@@ -10,7 +10,7 @@
 #include "nova/memory.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "0.6.0"
+#define NOVA_VERSION "0.7.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
@@ -68,7 +68,7 @@ static void print_tasks(void) {
 
 static void execute(const char *line) {
     if (!strcmp(line, "help")) {
-        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, uptime, task demo, task stop, led on, led off, reboot\n");
+        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, faults, uptime, task demo, task stop, led on, led off, reboot\n");
     } else if (!strcmp(line, "version")) {
         printf("NOVA Kernel Alpha %s (development)\n", NOVA_VERSION);
     } else if (!strcmp(line, "system")) {
@@ -83,6 +83,20 @@ static void execute(const char *line) {
         nova_shell_write("Pool blocks are 32 bytes; general heap accounting is not implemented.\n");
     } else if (!strcmp(line, "tasks")) {
         print_tasks();
+    } else if (!strcmp(line, "faults")) {
+        nova_fault_record_t records[NOVA_FAULT_LOG_CAPACITY];
+        size_t count = nova_task_fault_snapshot(records, NOVA_FAULT_LOG_CAPACITY);
+        printf("Task fault journal: %lu/%u retained; total faults: %lu\\n",
+               (unsigned long)count, (unsigned)NOVA_FAULT_LOG_CAPACITY,
+               (unsigned long)nova_task_fault_count());
+        for (size_t i = 0u; i < count; ++i) {
+            const char *reason = records[i].reason == NOVA_FAULT_STACK_GUARD ? "STACK_GUARD" :
+                records[i].reason == NOVA_FAULT_INVALID_TASK_RESULT ? "INVALID_RESULT" :
+                records[i].reason == NOVA_FAULT_TASK_RETURNED_RUNNING ? "BAD_RETURN_STATE" : "UNKNOWN";
+            printf("  #%lu t=%lu ms task=%u %-12s %s\\n",
+                   (unsigned long)records[i].sequence, (unsigned long)records[i].tick_ms,
+                   (unsigned)records[i].task_id, records[i].task_name, reason);
+        }
     } else if (!strcmp(line, "uptime")) {
         printf("%lu ms\n", (unsigned long)nova_uptime_ms());
     } else if (!strcmp(line, "task demo")) {
