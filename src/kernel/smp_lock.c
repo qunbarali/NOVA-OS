@@ -13,9 +13,8 @@ static bool kernel_lock_ready;
 
 void nova_smp_lock_init(void) {
     if (kernel_lock_ready) return;
-    uint lock_number = spin_lock_claim_unused(true);
-    kernel_lock = spin_lock_instance(lock_number);
-    spin_lock_init(kernel_lock);
+    int claimed_lock = spin_lock_claim_unused(true);
+    kernel_lock = spin_lock_init((uint)claimed_lock);
     kernel_lock_ready = true;
 }
 
