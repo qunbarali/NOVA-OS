@@ -12,13 +12,13 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - Interfaces are versioned; optional hardware is exposed through capability discovery.
 - Recovery must remain possible if a NOVA image is damaged.
 
-## Current Alpha 0.6 execution model
+## Current Alpha 0.7 execution model
 - Core 0 initializes the board/kernel and owns the USB CDC command shell.
 - Core 0 runs an eight-slot cooperative state-machine scheduler from the shell's polling loop. Ready tasks are dispatched by numeric priority (lower value first); equal-priority tasks use rotating scan order.
 - A repeating 1 ms hardware timer callback increments an atomic system tick counter.
 - Core 1 runs a diagnostic heartbeat service; it is not a second scheduler.
 - Task callbacks run on persistent per-task stacks. They may yield or sleep and resume at the instruction following that call; returning NOVA_TASK_AGAIN rebuilds the stack and restarts the callback, while NOVA_TASK_EXIT terminates it.
-- Invalid task callback return values move that task to a FAULTED state; the slot remains inspectable and must be explicitly terminated.
+- Scheduler-detected task faults move the task to a FAULTED state; the slot remains inspectable and must be explicitly terminated. A bounded eight-entry journal records sequence, scheduler tick, task ID/name and reason; the `faults` command displays retained records. This is not yet CPU exception or HardFault capture.
 - Each task owns a fixed 512-byte, 8-byte-aligned stack. Architecture-specific context-switch routines save and restore task registers and PSP state on Cortex-M0+ and Cortex-M33. Task code runs on PSP, while a dedicated 1 KiB MSP stack serves exception handlers during task execution.
 - Four guard words detect writes into the low-address stack boundary; a low-address-first fill-pattern scan reports the deepest touched stack address as a high-water estimate. Guard corruption marks the task FAULTED.
 - Task call chains persist across cooperative yields and sleeps. Scheduling remains non-preemptive: a task that does not yield, sleep, or return can monopolize core 0. Tasks share one address space and privilege level; process isolation is not implemented.
@@ -31,7 +31,7 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 - This is an embedded kernel foundation, not yet a protected microkernel with process isolation.
 
 ## Planned kernel services
-1. Exception frames, fault entry and stronger stack protection
+1. CPU exception frames, architecture fault entry and stronger stack protection
 2. Interrupt-safe critical sections and priority-aware synchronization
 3. General memory allocator and per-task resource accounting
 4. Blocking IPC, wait queues and event subscriptions
