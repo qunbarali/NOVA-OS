@@ -45,7 +45,9 @@ static void print_system(void) {
     printf("Board ID: %s\n", id);
     printf("SRAM capacity: %lu KiB (total, not free memory)\n", (unsigned long)nova_sram_capacity_kib());
     printf("Core 1 service: %s\n", nova_core1_is_ready() ? "ready" : "starting");
-    printf("Uptime: %lu ms\n", (unsigned long)nova_uptime_ms());
+    printf("Uptime: %lu ms; system ticks: %lu; timer IRQ: %s\n",
+           (unsigned long)nova_uptime_ms(), (unsigned long)nova_system_ticks(),
+           nova_kernel_timer_ready() ? "active" : "failed");
 }
 
 static void print_tasks(void) {
