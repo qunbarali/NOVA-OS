@@ -60,7 +60,7 @@ class NovaAlpha03Tests(unittest.TestCase):
         self.assertIn('"task demo"', shell)
         self.assertIn('"task stop"', shell)
         self.assertIn("nova_system_ticks()", shell)
-        self.assertIn("nova_kernel_timer_ready()", shell)
+        self.assertIn("nova_kernel_timer_ready()", shell)\n        self.assertIn("nova_task_fault_count()", shell)\n        self.assertIn("NOVA_VERSION \\"0.3.0\\"", shell)
 
     def test_firmware_workflow_is_manual_and_builds_both_targets(self):
         workflow = read(".github/workflows/firmware-build.yml")
