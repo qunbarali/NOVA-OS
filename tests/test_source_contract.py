@@ -76,7 +76,7 @@ class NovaAlpha07Tests(unittest.TestCase):
         self.assertIn("NOVA_QUEUE_MESSAGE_SIZE 32u", header)
         self.assertIn("lengths[NOVA_QUEUE_CAPACITY]", header)
         self.assertIn("capacity < length", source)
-        self.assertIn("mutex->owner != caller", source)
+        self.assertIn("mutex->owner == caller", source)
 
     def test_shell_polls_scheduler_and_reports_timer(self):
         shell = read("src/shell/shell.c")
