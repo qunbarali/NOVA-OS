@@ -75,6 +75,14 @@ jobs:
             -o /tmp/nova-ipc-tests
           /tmp/nova-ipc-tests
 
+      - name: Run native device-manager tests
+        if: inputs.run_source_tests
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -DNOVA_HOST_TEST -Iinclude \
+            src/kernel/device.c src/kernel/smp_lock.c tests/host/test_device.c \
+            -o /tmp/nova-device-tests
+          /tmp/nova-device-tests
+
       - name: Configure firmware
         run: |
           cmake -S . -B "build-${{ matrix.board }}" -G Ninja \
