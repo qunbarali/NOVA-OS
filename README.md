@@ -1,11 +1,13 @@
-# NOVA OS — Kernel Alpha 0.2.0
+# NOVA OS — Kernel Alpha 0.3.0
 
-NOVA is an independently designed embedded operating system project. Alpha 0.2 adds bounded cooperative task scheduling and foundational kernel services for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
+NOVA is an independently designed embedded operating system project. Alpha 0.3 adds priority-aware cooperative dispatch, task fault containment and core-local interrupt critical sections for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target).
 
 ## Alpha 0.2 features
-- Eight-slot cooperative state-machine task scheduler with round-robin scan
+- Eight-slot cooperative state-machine scheduler with priority-ordered dispatch and round-robin tie-breaking
 - Task creation, suspension, resumption, termination and sleep
-- Task state and dispatch diagnostics
+- Task state, priority, dispatch and fault diagnostics
+- Invalid task callback results are isolated as FAULTED slots
+- Core-local interrupt save/restore critical-section API for short core-0 sections
 - 1 ms hardware timer interrupt with atomic system tick counter
 - Fixed memory pool: eight 32-byte blocks
 - Bounded IPC message queues: eight 32-byte messages with variable-length payloads
@@ -54,4 +56,4 @@ These checks are not a substitute for compiling both firmware targets or testing
 ## Important architecture limitations
 Alpha 0.2 uses cooperative state-machine tasks on core 0. Tasks share the core-0 stack; independent task stacks and preemptive context switching are not implemented. Core 1 remains a diagnostic heartbeat. Queue, mutex and event primitives are bounded, non-blocking and single-core only. No process isolation or general-purpose heap exists yet.
 
-See [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
+See [Alpha 0.3 notes](docs/ALPHA_0_3.md) and [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
