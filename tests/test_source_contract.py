@@ -52,8 +52,8 @@ class NovaAlpha02Tests(unittest.TestCase):
     def test_firmware_workflow_is_manual_and_builds_both_targets(self):
         workflow = read(".github/workflows/firmware-build.yml")
         self.assertIn("workflow_dispatch:", workflow)
-        self.assertNotIn("\\n  push:", workflow)
-        self.assertNotIn("\\n  pull_request:", workflow)
+        self.assertNotIn("\n  push:", workflow)
+        self.assertNotIn("\n  pull_request:", workflow)
         self.assertIn("board: pico", workflow)
         self.assertIn("board: pico2", workflow)
         self.assertIn("PICO_PLATFORM", workflow)
