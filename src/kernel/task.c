@@ -25,6 +25,22 @@ static nova_task_id_t current_task = NOVA_TASK_ID_INVALID;
 static uint8_t next_slot;
 static uint32_t dispatches, faults, scheduler_now_ms;
 static bool scheduler_active;
+static nova_fault_record_t fault_log[NOVA_FAULT_LOG_CAPACITY];
+static uint32_t fault_sequence;
+static size_t fault_log_count;
+static void record_task_fault(task_control_t *task, nova_fault_reason_t reason) {
+    nova_fault_record_t *record = &fault_log[fault_sequence % NOVA_FAULT_LOG_CAPACITY];
+    memset(record, 0, sizeof(*record));
+    record->sequence = ++fault_sequence;
+    record->tick_ms = scheduler_now_ms;
+    record->task_id = task->info.id;
+    record->reason = reason;
+    memcpy(record->task_name, task->info.name, sizeof(record->task_name));
+    if (fault_log_count < NOVA_FAULT_LOG_CAPACITY) ++fault_log_count;
+    task->info.state = NOVA_TASK_FAULTED;
+    task->entry = NULL;
+    ++faults;
+}
 static bool deadline_reached(uint32_t now, uint32_t deadline) {
     return (uint32_t)(now - deadline) < 0x80000000u;
 }
@@ -77,6 +93,7 @@ static bool stack_guard_valid(const task_control_t *task) {
 void nova_task_init(void) {
     memset(tasks, 0, sizeof(tasks)); current_task = NOVA_TASK_ID_INVALID; next_slot = 0u;
     dispatches = 0u; faults = 0u; scheduler_now_ms = 0u; scheduler_active = false;
+    memset(fault_log, 0, sizeof(fault_log)); fault_sequence = 0u; fault_log_count = 0u;
 #ifndef NOVA_HOST_TEST
     scheduler_sp = 0u;
 #endif
@@ -157,7 +174,7 @@ void nova_task_scheduler_poll(uint32_t now_ms) {
         dispatched[selected] = true;
         task_control_t *task = &tasks[selected];
         if (!stack_guard_valid(task)) {
-            task->info.state = NOVA_TASK_FAULTED; task->entry = NULL; ++faults; continue;
+            record_task_fault(task, NOVA_FAULT_STACK_GUARD); continue;
         }
         current_task = selected; task->info.state = NOVA_TASK_RUNNING; ++task->info.runs; ++dispatches;
 #ifdef NOVA_HOST_TEST
@@ -168,16 +185,16 @@ void nova_task_scheduler_poll(uint32_t now_ms) {
 #endif
         current_task = NOVA_TASK_ID_INVALID; update_stack_usage(task);
         if (!stack_guard_valid(task)) {
-            task->info.state = NOVA_TASK_FAULTED; task->entry = NULL; ++faults;
+            record_task_fault(task, NOVA_FAULT_STACK_GUARD);
         } else if (task->completed) {
             if (task->result == NOVA_TASK_EXIT) memset(task, 0, sizeof(*task));
             else if (task->result != NOVA_TASK_AGAIN) {
-                task->info.state = NOVA_TASK_FAULTED; task->entry = NULL; ++faults;
+                record_task_fault(task, NOVA_FAULT_INVALID_TASK_RESULT);
             } else if (task->info.state == NOVA_TASK_RUNNING || task->info.state == NOVA_TASK_READY) {
                 initialize_stack(task); task->info.state = NOVA_TASK_READY;
             }
         } else if (task->info.state == NOVA_TASK_RUNNING) {
-            task->info.state = NOVA_TASK_FAULTED; task->entry = NULL; ++faults;
+            record_task_fault(task, NOVA_FAULT_TASK_RETURNED_RUNNING);
         }
     }
     current_task = NOVA_TASK_ID_INVALID;
@@ -197,3 +214,14 @@ size_t nova_task_count(void) {
 }
 uint32_t nova_task_dispatch_count(void) { return dispatches; }
 uint32_t nova_task_fault_count(void) { return faults; }
+size_t nova_task_fault_snapshot(nova_fault_record_t *out, size_t capacity) {
+    if (out == NULL || capacity == 0u) return 0u;
+    size_t count = fault_log_count < capacity ? fault_log_count : capacity;
+    uint32_t first = fault_sequence - (uint32_t)fault_log_count;
+    if (fault_log_count > count) first += (uint32_t)(fault_log_count - count);
+    for (size_t i = 0u; i < count; ++i) {
+        uint32_t sequence = first + (uint32_t)i + 1u;
+        out[i] = fault_log[(sequence - 1u) % NOVA_FAULT_LOG_CAPACITY];
+    }
+    return count;
+}
