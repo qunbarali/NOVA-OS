@@ -1,0 +1,95 @@
+name: NOVA OS firmware build
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_source_tests:
+        description: Run Python source-contract tests before compiling
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  firmware:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Raspberry Pi Pico (RP2040)
+            board: pico
+            platform: rp2040
+          - name: Raspberry Pi Pico 2 (RP2350 Cortex-M33)
+            board: pico2
+            platform: rp2350-arm-s
+
+    steps:
+      - name: Check out NOVA OS
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install ARM embedded build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            build-essential \
+            cmake \
+            ninja-build \
+            gcc-arm-none-eabi \
+            libnewlib-arm-none-eabi \
+            libstdc++-arm-none-eabi-newlib
+
+      - name: Check out Raspberry Pi Pico SDK
+        uses: actions/checkout@v4
+        with:
+          repository: raspberrypi/pico-sdk
+          ref: 2.3.1
+          path: pico-sdk
+          submodules: recursive
+
+      - name: Run source-contract tests
+        if: inputs.run_source_tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Configure firmware
+        run: |
+          cmake -S . -B "build-${{ matrix.board }}" -G Ninja \
+            -DPICO_BOARD=${{ matrix.board }} \
+            -DPICO_PLATFORM=${{ matrix.platform }} \
+            -DPICO_SDK_PATH="$GITHUB_WORKSPACE/pico-sdk" \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Compile firmware
+        run: cmake --build "build-${{ matrix.board }}" --parallel
+
+      - name: Verify firmware outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_dir="build-${{ matrix.board }}"
+          test -s "$build_dir/nova_os.uf2"
+          test -s "$build_dir/nova_os.elf"
+          echo "UF2 and ELF firmware outputs exist."
+          ls -lh "$build_dir/nova_os.uf2" "$build_dir/nova_os.elf"
+
+      - name: Publish firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-os-${{ matrix.board }}-firmware
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            build-${{ matrix.board }}/nova_os.uf2
+            build-${{ matrix.board }}/nova_os.elf
+            build-${{ matrix.board }}/nova_os.bin
+            build-${{ matrix.board }}/nova_os.hex
+            build-${{ matrix.board }}/nova_os.dis
+            build-${{ matrix.board }}/nova_os.map
