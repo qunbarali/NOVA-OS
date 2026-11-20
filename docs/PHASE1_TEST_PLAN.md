@@ -1,4 +1,4 @@
-# NOVA Alpha 0.2 — Build and Hardware Test Plan
+# NOVA Alpha 0.3 — Build and Hardware Test Plan
 
 ## A. Build matrix
 
@@ -14,7 +14,7 @@ Build each target in a clean, separate directory. Record compiler, SDK and CMake
 1. UF2 appears on the BOOTSEL RPI-RP2 volume and copies successfully.
 2. Board reboots after UF2 installation.
 3. USB CDC serial port enumerates.
-4. version returns Alpha 0.2.0.
+4. version returns Alpha 0.3.0.
 5. system reports board family, chip, board ID, uptime, timer tick count and timer health.
 6. memory reports physical SRAM capacity and fixed-pool free blocks.
 7. cpu reports core 1 ready.
@@ -55,10 +55,19 @@ The committed Python tests are source-contract checks. Add/run runtime tests for
 - Task demo behavior
 - 30-minute stability result
 
-## E. Exit criteria
+## E. Alpha 0.3 kernel checks
+
+- Native scheduler tests pass for priority ordering and equal-priority scan rotation.
+- Invalid callback return is recorded as FAULTED, excluded from further dispatch and can be explicitly terminated.
+- Recursive scheduler polling is rejected.
+- Critical-section enter/exit restores the caller's previous interrupt state.
+- Critical sections are not cross-core synchronization; core 1 must not access core-0-only IPC/task state.
+- Context switching, separate stacks, stack guards and preemption remain unimplemented until architecture ports and hardware tests exist.
+
+## F. Exit criteria
 
 Alpha 0.2 source implementation is committed. Do not call the milestone build-verified until both firmware targets compile. Do not call it hardware-validated until all board checks above pass on both physical boards and runtime kernel-service tests have been recorded.
 
-## F. Safety
+## G. Safety
 
 Do not write RP2350 OTP during development. Do not modify flash partitioning, boot metadata or bootloader regions in this milestone. Keep the ROM BOOTSEL recovery path available.
