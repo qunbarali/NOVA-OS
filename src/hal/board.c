@@ -3,12 +3,15 @@
 #include "pico/unique_id.h"
 #include "nova/board.h"
 #include "nova/device.h"
+#include "nova/smp_lock.h"
 
 static bool led_state;
 static int led_device_read(void *context, void *buffer, size_t capacity) {
     (void)context;
     if (buffer == NULL || capacity < 1u) return -1;
+    nova_smp_lock_state_t lock = nova_smp_lock_acquire();
     ((uint8_t *)buffer)[0] = led_state ? 1u : 0u;
+    nova_smp_lock_release(lock);
     return 1;
 }
 static int led_device_write(void *context, const void *buffer, size_t length) {
@@ -40,11 +43,18 @@ void nova_board_init(void) {
 }
 
 void nova_led_set(bool on) {
+    nova_smp_lock_state_t lock = nova_smp_lock_acquire();
     led_state = on;
     gpio_put(PICO_DEFAULT_LED_PIN, on ? 1 : 0);
+    nova_smp_lock_release(lock);
 }
 
-bool nova_led_get(void) { return led_state; }
+bool nova_led_get(void) {
+    nova_smp_lock_state_t lock = nova_smp_lock_acquire();
+    bool state = led_state;
+    nova_smp_lock_release(lock);
+    return state;
+}
 
 const char *nova_board_name(void) {
 #if PICO_RP2350
