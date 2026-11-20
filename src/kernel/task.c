@@ -144,7 +144,7 @@ static void switch_current_to_scheduler(void) {
 #endif
 }
 void nova_task_yield(void) {
-    if (current_task >= NOVA_TASK_MAX) return;
+    if (nova_task_current_id() == NOVA_TASK_ID_INVALID) return;
     task_control_t *task = &tasks[current_task];
     if (task->info.state != NOVA_TASK_RUNNING) return;
     task->info.state = NOVA_TASK_READY; switch_current_to_scheduler();
@@ -170,7 +170,7 @@ bool nova_task_wake(nova_task_id_t id) {
 uint32_t nova_task_now_ms(void) { return scheduler_now_ms; }
 
 void nova_task_sleep_current(uint32_t delay_ms) {
-    if (current_task >= NOVA_TASK_MAX) return;
+    if (nova_task_current_id() == NOVA_TASK_ID_INVALID) return;
     task_control_t *task = &tasks[current_task];
     if (task->info.state != NOVA_TASK_RUNNING) return;
     task->info.wake_at_ms = scheduler_now_ms + delay_ms;
