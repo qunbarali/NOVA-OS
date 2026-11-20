@@ -3,6 +3,11 @@
 #include <assert.h>
 #include <stdio.h>
 
+void nova_arch_call_on_stack(uintptr_t stack_top, void (*function)(void *), void *argument) {
+    (void)stack_top;
+    function(argument);
+}
+
 static unsigned task_a_runs;
 static unsigned task_b_runs;
 static unsigned task_exit_runs;
@@ -43,6 +48,9 @@ int main(void) {
     nova_task_id_t exiting = nova_task_create("task-exit", task_exit, NULL);
     assert(a != NOVA_TASK_ID_INVALID && b != NOVA_TASK_ID_INVALID);
     assert(exiting != NOVA_TASK_ID_INVALID && nova_task_count() == 3u);
+    nova_task_info_t stack_info[NOVA_TASK_MAX];
+    assert(nova_task_snapshot(stack_info, NOVA_TASK_MAX) == 3u);
+    assert(stack_info[0].stack_size_bytes == NOVA_TASK_STACK_SIZE);
 
     nova_task_scheduler_poll(100u);
     assert(task_a_runs == 1u && task_b_runs == 1u && task_exit_runs == 1u);

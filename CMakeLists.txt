@@ -8,10 +8,11 @@ if(NOT PICO_SDK_PATH)
 endif()
 
 include(pico_sdk_import.cmake)
-project(nova_os VERSION 0.3.0 LANGUAGES C CXX ASM)
+project(nova_os VERSION 0.4.0 LANGUAGES C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+# Pico SDK runtime sources use GNU C extensions (including the asm keyword).
+set(CMAKE_C_EXTENSIONS ON)
 pico_sdk_init()
 
 add_executable(nova_os
@@ -24,6 +25,14 @@ add_executable(nova_os
     src/hal/board.c
     src/shell/shell.c
 )
+
+if(PICO_PLATFORM STREQUAL "rp2040")
+    target_sources(nova_os PRIVATE src/arch/armv6m/call_on_stack.S)
+elseif(PICO_PLATFORM STREQUAL "rp2350-arm-s")
+    target_sources(nova_os PRIVATE src/arch/armv8m/call_on_stack.S)
+else()
+    message(FATAL_ERROR "NOVA currently supports RP2040 and RP2350 Cortex-M33 only; got PICO_PLATFORM=${PICO_PLATFORM}")
+endif()
 
 target_include_directories(nova_os PRIVATE include)
 target_compile_options(nova_os PRIVATE

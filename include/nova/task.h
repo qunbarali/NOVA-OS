@@ -8,6 +8,7 @@
 #define NOVA_TASK_MAX 8u
 #define NOVA_TASK_NAME_MAX 12u
 #define NOVA_TASK_PRIORITY_DEFAULT 128u
+#define NOVA_TASK_STACK_SIZE 512u
 
 typedef uint8_t nova_task_id_t;
 #define NOVA_TASK_ID_INVALID ((nova_task_id_t)0xFFu)
@@ -33,6 +34,8 @@ typedef struct {
     char name[NOVA_TASK_NAME_MAX + 1u];
     nova_task_state_t state;
     uint8_t priority;
+    uint16_t stack_size_bytes;
+    uint16_t stack_used_bytes;
     uint32_t runs;
     uint32_t wake_at_ms;
 } nova_task_info_t;
