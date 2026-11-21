@@ -8,7 +8,7 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-class NovaAlpha12Tests(unittest.TestCase):
+class NovaAlpha13Tests(unittest.TestCase):
     def test_dual_board_build_script(self):
         script = read("scripts/build-all.ps1")
         self.assertIn("Board = 'pico'", script)
@@ -82,6 +82,8 @@ class NovaAlpha12Tests(unittest.TestCase):
         self.assertIn("NOVA_INPUT_DEBOUNCE_MS", input_c)
         self.assertIn("gpio_pull_up", input_c)
         self.assertIn("src/hal/input.c", cmake)
+        self.assertIn("src/hal/display.c", cmake)
+        self.assertIn("hardware_spi", cmake)
 
     def test_pool_has_fixed_capacity(self):
         header = read("include/nova/memory.h")
