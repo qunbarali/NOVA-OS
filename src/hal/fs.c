@@ -69,7 +69,7 @@ int nova_fs_read_file(const char *path,uint8_t *buffer,size_t capacity,size_t *r
     if(!mounted){fs_unlock();return -1;}
     FIL file;FRESULT r=f_open(&file,path,FA_READ);
     if(r!=FR_OK){fs_unlock();return -(int)r-10;}
-    UINT amount=0u;r=f_read(&file,buffer,(UINT)(capacity>UINT_MAX?UINT_MAX:capacity),&amount);
+    UINT amount=0u;r=f_read(&file,buffer,(UINT)capacity,&amount);
     FRESULT close_result=f_close(&file);*read_bytes=(size_t)amount;
     fs_unlock();return r==FR_OK&&close_result==FR_OK?0:-2;
 }
@@ -108,7 +108,7 @@ int nova_fs_sha256_range(const char *path,uint32_t offset,uint32_t length,uint8_
     fs_unlock();return r==FR_OK&&close_result==FR_OK?0:-2;
 }
 int nova_fs_write_atomic(const char *path,const void *data,size_t length){
-    if(!path||!data||length>UINT32_MAX)return -1;
+    if(!path||!data)return -1;
     fs_lock();
     int result=-1;
     if(!mounted)goto done;
