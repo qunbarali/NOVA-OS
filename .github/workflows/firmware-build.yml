@@ -97,6 +97,12 @@ jobs:
             -o /tmp/nova-device-tests
           /tmp/nova-device-tests
 
+      - name: Run native SHA-256 tests
+        if: inputs.run_source_tests
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -Iinclude src/kernel/sha256.c tests/host/test_sha256.c -o /tmp/nova-sha256-tests
+          /tmp/nova-sha256-tests
+
       - name: Run native storage ownership tests
         if: inputs.run_source_tests
         run: |
