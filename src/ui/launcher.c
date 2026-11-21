@@ -66,8 +66,14 @@ void nova_ui_poll(void){
     if(!initialized)return;
     nova_input_poll();uint8_t events=nova_input_take_events();bool changed=false;
     if(files_open){
+        if(apps_open&&(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_UP))&&app_selection>0u){app_selection--;changed=true;}
+        if(apps_open&&(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_DOWN))){
+            uint8_t count=0u;for(size_t i=0u;root_listing[i];i++)if(root_listing[i]=='\n')count++;
+            if(app_selection+1u<count){app_selection++;changed=true;}
+        }
+        if(apps_open&&(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT))){strcpy(status_text,"APP RUNTIME PENDING");changed=true;}
         if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){
-            (void)nova_fs_unmount();files_open=false;strcpy(status_text,"SYSTEM READY");changed=true;
+            (void)nova_fs_unmount();files_open=false;apps_open=false;strcpy(status_text,"SYSTEM READY");changed=true;
         }
         if(changed)render();
         return;
@@ -76,16 +82,15 @@ void nova_ui_poll(void){
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_DOWN)){selected=(uint8_t)((selected+1u)%4u);changed=true;}
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){strcpy(status_text,"SYSTEM READY");changed=true;}
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT)){
-        if(selected==1u){
+        if(selected==0u||selected==1u){
             if(nova_fs_mount()==0){
-                int n=nova_fs_list_root(root_listing,sizeof(root_listing));
-                if(n>=0){files_open=true;strcpy(status_text,"SD FILES READY");}
-                else {(void)nova_fs_unmount();strcpy(status_text,"FAT32 READ ERROR");}
+                int n=selected==0u?nova_fs_list_directory("0:/NOVA/APPS",root_listing,sizeof(root_listing)):nova_fs_list_root(root_listing,sizeof(root_listing));
+                if(n>=0){files_open=true;apps_open=selected==0u;app_selection=0u;strcpy(status_text,apps_open?"APP CATALOG":"SD FILES READY");}
+                else {(void)nova_fs_unmount();strcpy(status_text,selected==0u?"NO APPS FOUND":"FAT32 READ ERROR");}
             }else strcpy(status_text,"NO SD OR FAT32");
         }else if(selected==2u){
             strcpy(status_text,nova_storage_current_owner()==NOVA_STORAGE_OWNER_USB?"USB MSC ACTIVE":"USB CDC READY");
-        }else if(selected==0u)strcpy(status_text,"NO APPS INSTALLED");
-        else strcpy(status_text,"NOVA SYSTEM INFO");
+        }else strcpy(status_text,"NOVA SYSTEM INFO");
         changed=true;
     }
     if(changed)render();
