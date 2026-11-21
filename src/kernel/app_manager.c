@@ -38,6 +38,17 @@ bool nova_app_manager_request_stop(void){
     if(manager.state!=NOVA_APP_RUNNING&&manager.state!=NOVA_APP_READY)return false;
     manager.state=NOVA_APP_STOPPING;nova_app_request_stop();return true;
 }
+void nova_app_manager_poll(void){
+    if(manager.task_id==NOVA_TASK_ID_INVALID)return;
+    nova_task_info_t tasks[NOVA_TASK_MAX];size_t count=nova_task_snapshot(tasks,NOVA_TASK_MAX);
+    for(size_t i=0u;i<count;i++){
+        if(tasks[i].id==manager.task_id){
+            if(tasks[i].state==NOVA_TASK_FAULTED){manager.state=NOVA_APP_FAILED;manager.exit_code=-5;manager.entry=NULL;}
+            return;
+        }
+    }
+    if(manager.state==NOVA_APP_RUNNING||manager.state==NOVA_APP_STOPPING){manager.state=NOVA_APP_FAILED;manager.exit_code=-6;manager.entry=NULL;manager.task_id=NOVA_TASK_ID_INVALID;}
+}
 void nova_app_manager_snapshot(nova_app_manager_info_t *info){
     if(!info)return;
     info->state=manager.state;info->task_id=manager.task_id;info->exit_code=manager.exit_code;
