@@ -83,6 +83,12 @@ jobs:
             -o /tmp/nova-device-tests
           /tmp/nova-device-tests
 
+      - name: Run native storage ownership tests
+        if: inputs.run_source_tests
+        run: |
+          gcc -std=c11 -Wall -Wextra -Werror -Iinclude src/kernel/storage_owner.c tests/host/test_storage_owner.c -o /tmp/nova-storage-tests
+          /tmp/nova-storage-tests
+
       - name: Configure firmware
         run: |
           cmake -S . -B "build-${{ matrix.board }}" -G Ninja \
