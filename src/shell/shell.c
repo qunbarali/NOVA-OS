@@ -12,6 +12,7 @@
 #include "nova/device.h"
 #include "nova/ui.h"
 #include "nova/usb.h"
+#include "nova/app_manager.h"
 
 #define LINE_CAPACITY 80u
 #define NOVA_VERSION "1.5.0"
@@ -73,7 +74,7 @@ static void print_tasks(void) {
 
 static void execute(const char *line) {
     if (!strcmp(line, "help")) {
-        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, faults, crash, devices, device led0 on/off, uptime, task demo, task stop, led on, led off, reboot\n");
+        nova_shell_write("Commands: help, version, system, cpu, memory, tasks, faults, crash, devices, device led0 on/off, uptime, app status, app stop, task demo, task stop, led on, led off, reboot\n");
     } else if (!strcmp(line, "version")) {
         printf("NOVA Kernel Alpha %s (development)\n", NOVA_VERSION);
     } else if (!strcmp(line, "system")) {
@@ -132,6 +133,18 @@ static void execute(const char *line) {
     } else if (!strcmp(line, "crash clear")) {
         nova_crash_clear();
         nova_shell_write("Retained crash record cleared.\n");
+    } else if (!strcmp(line, "app status")) {
+        nova_app_manager_info_t app;
+        nova_app_manager_snapshot(&app);
+        const char *state = app.state == NOVA_APP_STOPPED ? "STOPPED" :
+            app.state == NOVA_APP_VALIDATING ? "VALIDATING" :
+            app.state == NOVA_APP_READY ? "READY" :
+            app.state == NOVA_APP_RUNNING ? "RUNNING" :
+            app.state == NOVA_APP_STOPPING ? "STOPPING" : "FAILED";
+        printf("Application: %s state=%s task=%u exit=%d\\n", app.name, state,
+               (unsigned)app.task_id, app.exit_code);
+    } else if (!strcmp(line, "app stop")) {
+        nova_shell_write(nova_app_manager_request_stop() ? "Application stop requested. The app must cooperate.\\n" : "No active application can be stopped.\\n");
     } else if (!strcmp(line, "uptime")) {
         printf("%lu ms\n", (unsigned long)nova_uptime_ms());
     } else if (!strcmp(line, "task demo")) {
