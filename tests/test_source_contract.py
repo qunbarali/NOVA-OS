@@ -181,5 +181,19 @@ class NovaAlpha13Tests(unittest.TestCase):
         self.assertIn("nova_system_ticks", kernel)
 
 
+    def test_shared_spi_and_sd_block_driver_foundation(self):
+        bus_h = read("include/nova/spi_bus.h")
+        bus_c = read("src/hal/spi_bus.c")
+        sd_h = read("include/nova/sd_spi.h")
+        sd_c = read("src/hal/sd_spi.c")
+        cmake = read("CMakeLists.txt")
+        self.assertIn("nova_spi_bus_acquire", bus_h)
+        self.assertIn("mutex_enter_blocking", bus_c)
+        self.assertIn("NOVA_SD_SECTOR_SIZE 512u", sd_h)
+        self.assertIn("SD_CMD17", sd_c)
+        self.assertIn("SD_CMD24", sd_c)
+        self.assertIn("src/hal/spi_bus.c", cmake)
+        self.assertIn("src/hal/sd_spi.c", cmake)
+
 if __name__ == "__main__":
     unittest.main()
