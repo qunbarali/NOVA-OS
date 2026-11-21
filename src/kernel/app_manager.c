@@ -10,6 +10,7 @@ static struct {
 static nova_task_result_t app_task(void *context){
     (void)context;
     if(!manager.entry){manager.state=NOVA_APP_FAILED;manager.exit_code=-1;manager.task_id=NOVA_TASK_ID_INVALID;return NOVA_TASK_EXIT;}
+    if(nova_app_stop_requested()){manager.entry=NULL;manager.task_id=NOVA_TASK_ID_INVALID;manager.state=NOVA_APP_STOPPED;return NOVA_TASK_EXIT;}
     manager.state=NOVA_APP_RUNNING;
     int result=manager.entry(nova_app_api_v1());
     manager.state=NOVA_APP_STOPPING;
