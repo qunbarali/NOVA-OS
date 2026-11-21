@@ -1,6 +1,7 @@
 #include "nova/crash.h"
 #include "hardware/structs/watchdog.h"
 #include "hardware/watchdog.h"
+#include "hardware/sync.h"
 #include "pico/stdlib.h"
 
 bool nova_crash_read(nova_crash_record_t *out) {
