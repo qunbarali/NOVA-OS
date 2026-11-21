@@ -82,7 +82,7 @@ int nova_sd_init(nova_sd_card_t *c,spi_inst_t *spi,uint8_t sck,uint8_t tx,uint8_
     if(!c->high_capacity && command(c,SD_CMD16,512u,0x01u)!=0u){nova_spi_bus_release(cs);return -8;}
     c->sector_count = read_capacity_sectors(c);
     nova_spi_bus_release(cs);
-    if (c->sector_count == 0u) return -9;
+    if (c->sector_count == 0u || c->sector_count > NOVA_SD_MAX_CAPACITY_SECTORS) return -9;
     (void)spi_set_baudrate(spi, c->baudrate);
     c->initialized=true;return 0;
 }
