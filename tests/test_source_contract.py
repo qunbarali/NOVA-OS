@@ -63,6 +63,26 @@ class NovaAlpha12Tests(unittest.TestCase):
         self.assertIn("nova_event_wait", ipc)
         self.assertIn("NOVA_TASK_BLOCKED", read("include/nova/task.h"))
 
+    def test_display_controllers_and_four_button_input_foundation(self):
+        display_h = read("include/nova/display.h")
+        display_c = read("src/hal/display.c")
+        input_h = read("include/nova/input.h")
+        input_c = read("src/hal/input.c")
+        cmake = read("CMakeLists.txt")
+        self.assertIn("NOVA_DISPLAY_ST7735", display_h)
+        self.assertIn("NOVA_DISPLAY_ILI9341", display_h)
+        self.assertIn("init_st7735", display_c)
+        self.assertIn("init_ili9341", display_c)
+        self.assertIn("x_offset", display_h)
+        self.assertIn("y_offset", display_h)
+        self.assertIn("NOVA_BUTTON_UP", input_h)
+        self.assertIn("NOVA_BUTTON_DOWN", input_h)
+        self.assertIn("NOVA_BUTTON_SELECT", input_h)
+        self.assertIn("NOVA_BUTTON_BACK", input_h)
+        self.assertIn("NOVA_INPUT_DEBOUNCE_MS", input_c)
+        self.assertIn("gpio_pull_up", input_c)
+        self.assertIn("src/hal/input.c", cmake)
+
     def test_pool_has_fixed_capacity(self):
         header = read("include/nova/memory.h")
         source = read("src/kernel/memory.c")
