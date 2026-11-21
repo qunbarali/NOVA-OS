@@ -45,21 +45,22 @@ bool nova_fs_is_mounted(void){return mounted;}
 int nova_fs_sync(void){
     fs_lock();int result=mounted?sync_locked():-1;fs_unlock();return result;
 }
-int nova_fs_list_root(char *output,size_t capacity){
-    if(!output||capacity==0u)return -1;
+int nova_fs_list_directory(const char *path,char *output,size_t capacity){
+    if(!path||!output||capacity==0u)return -1;
     fs_lock();
     if(!mounted){fs_unlock();return -1;}
-    DIR dir;FILINFO info;FRESULT r=f_opendir(&dir,"0:/");
+    DIR dir;FILINFO info;FRESULT r=f_opendir(&dir,path);
     if(r!=FR_OK){fs_unlock();return -(int)r-10;}
-    size_t used=0u;output[0]='\0';
+    size_t used=0u;output[0]='\\0';
     while((r=f_readdir(&dir,&info))==FR_OK&&info.fname[0]){
-        int n=snprintf(output+used,capacity-used,"%.20s%s\n",info.fname,(info.fattrib&AM_DIR)?"/":"");
+        int n=snprintf(output+used,capacity-used,"%.20s%s\\n",info.fname,(info.fattrib&AM_DIR)?"/":"");
         if(n<0){(void)f_closedir(&dir);fs_unlock();return -2;}
-        if((size_t)n>=capacity-used){used=capacity-1u;output[used]='\0';break;}
+        if((size_t)n>=capacity-used){used=capacity-1u;output[used]='\\0';break;}
         used+=(size_t)n;
     }
     (void)f_closedir(&dir);fs_unlock();return r==FR_OK?(int)used:-(int)r-10;
 }
+int nova_fs_list_root(char *output,size_t capacity){return nova_fs_list_directory("0:/",output,capacity);}
 int nova_fs_read_file(const char *path,uint8_t *buffer,size_t capacity,size_t *read_bytes){
     if(!path||!buffer||!read_bytes)return -1;
     fs_lock();
