@@ -1,33 +1,41 @@
-# NOVA-OS display and application platform plan
+# NOVA-OS display and application platform
 
-## Display support
-NOVA-OS provides a common RGB565 display API with selectable controller:
-- ST7735: configure actual visible dimensions and X/Y offsets. Common panels are 128x160; module variants differ.
-- ILI9341: configure actual visible dimensions and offsets. Common panels are 240x320.
-- Both use SPI and independent chip-select, data/command and reset signals. Backlight is optional.
-- Display and SD storage may share one SPI peripheral only when each has a separate chip-select and the drivers release the bus between transactions. The initial display driver owns SPI transactions directly; shared-bus arbitration is required before enabling SD and display concurrently.
-- Orientation, RGB/BGR order, ST7735 initialization variant and offsets must be board-configurable. Initial command sequences are starting profiles, not validation for every clone module.
+## Display support implemented
+NOVA has a common RGB565 SPI display API with selectable controller profiles:
+- ST7735: default profile 128x160; module-specific offsets and init sequences may differ.
+- ILI9341: selectable profile 240x320.
+- Both use independent chip-select, D/C and reset signals, with optional backlight.
+- Display and SD share SPI0 through the bus mutex.
+- A batched 5x7 ASCII font renderer and a graphical launcher are integrated.
+- The four active-low buttons navigate the launcher and SD/application catalog.
+
+Orientation, RGB/BGR order, panel offsets, clone-specific init, actual voltage levels and SPI timing still require physical panel testing.
+
+## Storage and USB
+The SD SPI block driver supports SDHC/SDSC, 512-byte sectors and CSD capacity detection up to 32 GiB. FatFs R0.16 provides FAT12/16/32 and long filenames. exFAT is disabled. Filesystem operations are serialized and the filesystem owner is mutually exclusive with USB MSC.
+
+TinyUSB device mode exposes:
+- CDC ACM for the NOVA shell and diagnostics.
+- MSC for raw SD block access to a connected Windows/Linux/Android USB host that supports mass storage.
+
+NOVA must unmount and release the filesystem before the host can own the medium. USB eject keeps the SD unavailable until disconnect. USB host mode, VBUS sourcing, role switching and iPhone accessory protocol support remain future work.
 
 ## Windows IDE and NOVA application format
-A separate Windows desktop IDE is required. It should provide project creation, source editing, target selection (RP2040 / RP2350 Cortex-M33), build output, diagnostics, package inspection, and USB/SD deployment.
+The Windows WPF IDE lives in a separate repository: https://github.com/qunbarali/NOVA-OS-IDE-
 
-The canonical installable format should be a NOVA package (.nova) containing:
-- magic and format version;
-- target chip/architecture and minimum NOVA ABI version;
-- application name, version, entry point and permissions/capabilities;
-- image type, load-address policy, image length and checksum/hash;
-- optional resources and metadata.
+The IDE can build a CMake project, package compatible ARM ELF32 or raw BIN into a .nova container, inspect package hashes, and copy packages to a FAT32 removable SD card under NOVA/APPS. UF2 is reserved for firmware flashing/recovery and is not an application.
 
-The package format, not the filename extension, defines executable semantics. The IDE may import/export ELF and raw BIN when the image is compatible with the NOVA ABI and loader. The OS must reject unknown, oversized, malformed, wrong-target, overlapping or checksum-invalid images before installation.
+The package format includes a 128-byte header with signature, version, target, ABI version, image kind, load address, name, version, payload length and SHA-256. The total package size is limited to 2 MiB. This is a storage/transport limit, not an executable RAM limit.
 
-## UF2 distinction
-UF2 is a bootloader transport/flash image format. A UF2 containing a complete NOVA firmware image is installed through a controlled firmware update/recovery flow, not launched as an SD-card application. The IDE may generate UF2 for flashing NOVA firmware or supported firmware bundles. It must not imply that arbitrary UF2 can run as a process.
+## ABI and runtime status
+The firmware defines ABI v1 service-table declarations and implements service functions for uptime, display text, SD mount/unmount, file read, atomic file write, cooperative yield and stop request. The IDE validates the ELF32 executable type and nova_app_main Thumb entry symbol. Firmware validates package target, ABI, size and payload SHA-256 before reporting it as verified.
 
-## 2 MiB application limit
-The first release should enforce a maximum package/image file size of 2 MiB on SD. This is a storage limit, not a RAM guarantee. The loader must separately validate RAM/flash placement, stack, heap, ABI and board memory constraints. RP2040 has 264 KiB SRAM; RP2350 has 520 KiB SRAM.
+The dynamic ELF loader is not yet implemented. It must validate program headers and PT_LOAD ranges, reject unsupported relocations, define target-specific app RAM regions from real linker maps, initialize BSS and stack, and run a cooperative lifecycle supervisor. RP2040 has 264 KiB SRAM and RP2350 has 520 KiB SRAM, but the usable app memory budget must be calculated from the final Alpha firmware map. A 2 MiB package cannot be assumed to fit in RAM.
 
-## Execution model requirement
-The current NOVA kernel is cooperative and shares one address space. It does not yet have process isolation, an application ABI, relocation/loading support, or safe user-mode boundaries. The initial application milestone must first define a restricted, statically linked application ABI and safe launch/return contract. Do not execute arbitrary uploaded ELF/BIN files until these are implemented and tested.
+Do not execute arbitrary packages until the loader, memory boundaries, lifecycle handling and fault recovery have been implemented and validated.
 
-## Hardware pin proposal
-Shared SPI prototype: GP18 SCK, GP19 MOSI, GP16 MISO; display CS GP13, SD CS GP17; display D/C GP12, reset GP11, optional backlight GP10. Four keypad inputs may use GP2-GP5 with pull-ups and active-low switches. Confirm voltage levels and module pin labels before connecting hardware.
+## Battery hardware
+Battery ADC telemetry is optional and disabled by default. The CMake configuration requires a measured voltage-divider ratio and an ADC GPIO. The current estimate is based on single-cell lithium voltage and is not a fuel gauge. A charger/power-path IC, battery protection and hardware low-voltage cutoff are external hardware responsibilities. Do not connect a battery directly to an RP-series GPIO.
+
+## Prototype pin proposal
+Shared SPI0: GP18 SCK, GP19 MOSI, GP16 MISO; display CS GP13, SD CS GP17; display D/C GP12, reset GP11, optional backlight GP10. Four keypad inputs GP2-GP5 with pull-ups and active-low switches. Confirm the actual module labels and electrical requirements before connecting.
