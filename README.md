@@ -64,7 +64,7 @@ Repository: https://github.com/qunbarali/NOVA-OS-IDE-
 
 The WPF IDE has project build controls, RP2040/RP2350 target selection, .nova package creation and inspection, and a FAT32 SD-card copy operation into NOVA/APPS. The package writer accepts ARM ELF32 (requiring a nova_app_main Thumb entry symbol) or raw BIN with an explicit load address. UF2 is reserved for firmware flashing/recovery.
 
-The firmware ABI v1 service table is present, and the IDE includes a starter ABI header. The dynamic app loader, target-specific linker memory map, relocation validation, execution isolation and full lifecycle handling are not complete. Do not expect installed packages to run yet.
+The firmware ABI v1 service table and a cooperative single-app supervisor for trusted statically linked entry points are present; the IDE includes a matching starter ABI header. The installed-package ELF loader, target-specific linker memory map, relocation validation, execution isolation and package-to-process lifecycle integration are not complete. Do not expect installed packages to run yet.
 
 ## Build and validation
 
