@@ -17,6 +17,7 @@ void nova_display_set_backlight(bool enabled);
 void nova_display_fill(uint16_t rgb565);
 void nova_display_fill_rect(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t rgb565);
 void nova_display_pixel(uint16_t x, uint16_t y, uint16_t rgb565);
+void nova_display_blit_rgb565(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint16_t *pixels);
 uint16_t nova_display_width(void);
 uint16_t nova_display_height(void);
 bool nova_display_is_ready(void);
