@@ -9,7 +9,7 @@
 ## ABI v1 proposal in source
 The C header include/nova/app_abi.h defines the ABI version, entry symbol, service-table layout and lifecycle states. The entry contract is nova_app_main(const nova_app_api_v1_t *api). An app must verify api->abi_version and api->struct_size before using services.
 
-The firmware now exports the v1 service table for uptime, display text, SD mount/unmount, file reads, atomic file writes, cooperative yield and stop requests. The runtime-side application loader, task lifecycle integration and actual invocation path are not yet complete.
+The firmware now exports the v1 service table for uptime, display text, SD mount/unmount, file reads, atomic file writes, cooperative yield and stop requests. The firmware now validates the package signature, format, target ID, ABI version, payload length and SHA-256 digest from SD without loading the full package into RAM. Basic ARM ELF32 header checks are also performed. The runtime-side ELF segment validation, loader, task lifecycle integration and actual invocation path are not yet complete.
 
 ## Loader safety requirements
 1. Validate package signature, format version, target ID, ABI version, exact payload length and SHA-256 before loading.
