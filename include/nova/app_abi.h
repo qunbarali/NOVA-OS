@@ -14,6 +14,7 @@ typedef enum {
     NOVA_APP_STOPPING,
     NOVA_APP_FAILED
 } nova_app_state_t;
+typedef enum { NOVA_APP_BUTTON_UP=1u, NOVA_APP_BUTTON_DOWN=2u, NOVA_APP_BUTTON_SELECT=4u, NOVA_APP_BUTTON_BACK=8u } nova_app_button_event_t;
 typedef enum {
     NOVA_APP_EXIT_NORMAL=0,
     NOVA_APP_EXIT_REQUESTED=1,
