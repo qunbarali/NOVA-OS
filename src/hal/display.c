@@ -87,7 +87,7 @@ int nova_display_init(const nova_display_config_t *c) {
     if(active.controller==NOVA_DISPLAY_ST7735)init_st7735();else init_ili9341();
     ready=true; nova_display_fill(0x0000u); return 0;
 }
-void nova_display_set_backlight(bool enabled){if(active.backlight_pin>=0)gpio_put((uint)active.backlight_pin,enabled?1:0);}
+void nova_display_set_backlight(bool enabled){if(ready && active.backlight_pin>=0)gpio_put((uint)active.backlight_pin,enabled?1:0);}
 void nova_display_fill_rect(uint16_t x,uint16_t y,uint16_t w,uint16_t h,uint16_t color){
     if(!ready||!w||!h||x>=active.width||y>=active.height)return;
     uint32_t xe=(uint32_t)x+w,ye=(uint32_t)y+h;if(xe>active.width)xe=active.width;if(ye>active.height)ye=active.height;
