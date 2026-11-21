@@ -11,6 +11,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 option(NOVA_DISPLAY_ILI9341 "Use an ILI9341 panel instead of the default ST7735 profile" OFF)
+option(NOVA_BATTERY_ENABLE "Enable battery ADC telemetry after confirming divider hardware" OFF)
+set(NOVA_BATTERY_ADC_GPIO 26 CACHE STRING "Battery divider ADC GPIO (26, 27 or 28)")
+set(NOVA_BATTERY_DIVIDER_NUMERATOR 0 CACHE STRING "Battery voltage multiplier numerator")
+set(NOVA_BATTERY_DIVIDER_DENOMINATOR 1 CACHE STRING "Battery voltage multiplier denominator")
 pico_sdk_init()
 add_executable(nova_os
     src/main.c
@@ -50,6 +54,15 @@ endif()
 target_include_directories(nova_os PRIVATE include third_party/fatfs)
 if(NOVA_DISPLAY_ILI9341)
     target_compile_definitions(nova_os PRIVATE NOVA_DISPLAY_ILI9341=1)
+endif()
+if(NOVA_BATTERY_ENABLE)
+    if(NOVA_BATTERY_DIVIDER_NUMERATOR LESS_EQUAL 0 OR NOVA_BATTERY_DIVIDER_DENOMINATOR LESS_EQUAL 0)
+        message(FATAL_ERROR "Battery telemetry requires a measured non-zero divider ratio.")
+    endif()
+    target_compile_definitions(nova_os PRIVATE
+        NOVA_BATTERY_ADC_GPIO=${NOVA_BATTERY_ADC_GPIO}
+        NOVA_BATTERY_DIVIDER_NUMERATOR=${NOVA_BATTERY_DIVIDER_NUMERATOR}
+        NOVA_BATTERY_DIVIDER_DENOMINATOR=${NOVA_BATTERY_DIVIDER_DENOMINATOR})
 endif()
 target_compile_options(nova_os PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wstrict-prototypes)
 target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync hardware_spi hardware_adc tinyusb_device)
