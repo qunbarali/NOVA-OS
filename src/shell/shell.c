@@ -10,9 +10,10 @@
 #include "nova/memory.h"
 #include "nova/crash.h"
 #include "nova/device.h"
+#include "nova/ui.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "1.3.0"
+#define NOVA_VERSION "1.4.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
@@ -171,6 +172,7 @@ void nova_shell_run(void) {
     nova_shell_write("NOVA> ");
     for (;;) {
         nova_kernel_poll();
+        nova_ui_poll();
         int ch = getchar_timeout_us(1000);
         if (ch == PICO_ERROR_TIMEOUT) { tight_loop_contents(); continue; }
         if (ch == '\r' || ch == '\n') {
