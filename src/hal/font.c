@@ -34,7 +34,11 @@ static const uint8_t *glyph(char c) {
     static const uint8_t slash[5]={0x20,0x10,0x08,0x04,0x02};
     static const uint8_t dot[5]={0,0x60,0x60,0,0};
     static const uint8_t question[5]={0x02,0x01,0x51,0x09,0x06};
-    if(c=='-')return dash;if(c==':')return colon;if(c=='/')return slash;if(c=='.')return dot;if(c=='?')return question;
+    if(c=='-')return dash;
+    if(c==':')return colon;
+    if(c=='/')return slash;
+    if(c=='.')return dot;
+    if(c=='?')return question;
     return blank;
 }
 void nova_font_draw_char(uint16_t x,uint16_t y,char value,uint16_t fg,uint16_t bg){
@@ -45,5 +49,6 @@ void nova_font_draw_char(uint16_t x,uint16_t y,char value,uint16_t fg,uint16_t b
     }
 }
 void nova_font_draw_text(uint16_t x,uint16_t y,const char *text,uint16_t fg,uint16_t bg){
-    if(!text)return;while(*text){nova_font_draw_char(x,y,*text++,fg,bg);x=(uint16_t)(x+6u);}
+    if(!text)return;
+    while(*text){nova_font_draw_char(x,y,*text++,fg,bg);x=(uint16_t)(x+6u);}
 }
