@@ -30,8 +30,9 @@ int nova_fs_list_root(char *output,size_t capacity){
     DIR dir;FILINFO info;FRESULT r=f_opendir(&dir,"0:/");if(r!=FR_OK)return -(int)r-10;
     size_t used=0u;output[0]='\0';
     while((r=f_readdir(&dir,&info))==FR_OK&&info.fname[0]){
-        int n=snprintf(output+used,capacity-used,"%s%s%s\n",(info.fattrib&AM_DIR)?"[":"",info.fname,(info.fattrib&AM_DIR)?"]":"");
-        if(n<0||(size_t)n>=capacity-used){(void)f_closedir(&dir);return -2;}
+        int n=snprintf(output+used,capacity-used,"%.20s%s\n",info.fname,(info.fattrib&AM_DIR)?"/":"");
+        if(n<0){(void)f_closedir(&dir);return -2;}
+        if((size_t)n>=capacity-used){used=capacity-1u;output[used]='\0';break;}
         used+=(size_t)n;
     }
     (void)f_closedir(&dir);return r==FR_OK?(int)used:-(int)r-10;
