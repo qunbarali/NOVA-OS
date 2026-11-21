@@ -29,7 +29,7 @@ static void render(void){
     nova_display_fill_rect(0u,0u,w,18u,0x001Fu);
     nova_font_draw_text(4u,5u,"NOVA OS",COLOR_TEXT,0x001Fu);
     nova_battery_info_t battery;char battery_label[12]="BAT --";
-    if(nova_battery_read(&battery)) (void)snprintf(battery_label,sizeof(battery_label),"BAT %u%%",(unsigned)battery.percent);
+    if(nova_battery_read(&battery)) (void)snprintf(battery_label,sizeof(battery_label),battery.critical?"BAT CRIT":(battery.low?"BAT LOW":"BAT %u%%"),(unsigned)battery.percent);
     nova_font_draw_text((uint16_t)(w>54u?w-54u:4u),5u,battery_label,COLOR_ACCENT,0x001Fu);
     if(files_open){
         nova_font_draw_text(5u,25u,"SD FILES",COLOR_ACCENT,COLOR_BG);
