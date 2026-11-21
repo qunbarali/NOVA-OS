@@ -40,5 +40,6 @@ typedef struct {
 typedef int (*nova_app_entry_v1_t)(const nova_app_api_v1_t *api);
 const nova_app_api_v1_t *nova_app_api_v1(void);
 void nova_app_request_stop(void);
+void nova_app_reset_stop(void);
 bool nova_app_stop_requested(void);
 #endif
