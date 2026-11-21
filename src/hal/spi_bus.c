@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include <stddef.h>
 #include "nova/spi_bus.h"
 #include "hardware/gpio.h"
 #include "pico/mutex.h"
