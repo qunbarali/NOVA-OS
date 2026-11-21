@@ -53,6 +53,7 @@ int nova_fs_list_directory(const char *path,char *output,size_t capacity){
     if(r!=FR_OK){fs_unlock();return -(int)r-10;}
     size_t used=0u;output[0]='\0';
     while((r=f_readdir(&dir,&info))==FR_OK&&info.fname[0]){
+        if(strcmp(info.fname,".")==0||strcmp(info.fname,"..")==0)continue;
         int n=snprintf(output+used,capacity-used,"%.20s%s\n",info.fname,(info.fattrib&AM_DIR)?"/":"");
         if(n<0){(void)f_closedir(&dir);fs_unlock();return -2;}
         if((size_t)n>=capacity-used){used=capacity-1u;output[used]='\0';break;}
