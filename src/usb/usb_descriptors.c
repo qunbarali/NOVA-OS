@@ -21,7 +21,7 @@ static const uint8_t configuration_descriptor[]={
     TUD_MSC_DESCRIPTOR(ITF_MSC,5,EP_MSC_OUT,EP_MSC_IN,64)
 };
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index){(void)index;return configuration_descriptor;}
-static const char *const strings[]={"NOVA","NOVA OS USB","NOVA-ALPHA","NOVA CDC","NOVA SD STORAGE"};
+static const char *const strings[]={"NOVA","NOVA OS USB","NOVA-ALPHA","NOVA CDC","NOVA SD STORAGE","NOVA SD STORAGE"};
 static uint16_t string_descriptor[32];
 uint16_t const *tud_descriptor_string_cb(uint8_t index,uint16_t langid){
     (void)langid;
