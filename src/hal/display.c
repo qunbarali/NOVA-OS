@@ -54,7 +54,7 @@ static void init_st7735(void) {
     command(0x13u); sleep_ms(10u); command(CMD_DISPON); sleep_ms(100u);
 }
 static void init_ili9341(void) {
-    command(CMD_SWRESET); sleep_ms(150u); command(CMD_SLPOUT); sleep_ms(120u);
+    command(CMD_SWRESET); sleep_ms(150u);
     command(0xEFu); { const uint8_t v[]={0x03u,0x80u,0x02u}; data_bytes(v,sizeof v); }
     command(0xCFu); { const uint8_t v[]={0x00u,0xC1u,0x30u}; data_bytes(v,sizeof v); }
     command(0xEDu); { const uint8_t v[]={0x64u,0x03u,0x12u,0x81u}; data_bytes(v,sizeof v); }
