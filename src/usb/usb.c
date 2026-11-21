@@ -16,7 +16,8 @@ static int cdc_in(char *buffer,int length){
     if(length<=0||!tud_cdc_available())return 0;
     return (int)tud_cdc_read(buffer,(uint32_t)length);
 }
-static stdio_driver_t nova_cdc_stdio={.out_chars=cdc_out,.out_flush=tud_cdc_write_flush,.in_chars=cdc_in};
+static void cdc_flush(void){(void)tud_cdc_write_flush();}
+static stdio_driver_t nova_cdc_stdio={.out_chars=cdc_out,.out_flush=cdc_flush,.in_chars=cdc_in};
 void nova_usb_bind_storage(nova_sd_card_t *card){storage_card=card;}
 void nova_usb_init(void){
     (void)tusb_init();
