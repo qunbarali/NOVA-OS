@@ -6,8 +6,10 @@
 #include "nova/crash.h"
 #include "nova/ui.h"
 #include "nova/battery.h"
+#include "nova/usb.h"
 int main(void) {
     stdio_init_all();
+    nova_usb_init();
     sleep_ms(1200);
     nova_kernel_init();
     nova_board_init();
