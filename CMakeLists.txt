@@ -29,6 +29,8 @@ add_executable(nova_os
     src/kernel/device.c
     src/kernel/storage_owner.c
     src/kernel/app_abi.c
+    src/kernel/app_package.c
+    src/kernel/sha256.c
     src/kernel/memory.c
     src/kernel/ipc.c
     src/hal/board.c
