@@ -35,13 +35,16 @@ static void render(void){
     nova_font_draw_text((uint16_t)(w>54u?w-54u:4u),5u,battery_label,COLOR_ACCENT,0x001Fu);
     if(files_open){
         nova_font_draw_text(5u,25u,apps_open?"INSTALLED APPS":"SD FILES",COLOR_ACCENT,COLOR_BG);
-        char line[21];size_t pos=0u;uint16_t y=42u;
+        char line[21];size_t pos=0u;uint16_t y=42u;uint8_t row=0u;
         while(root_listing[pos]&&y+10u<h-20u){
             size_t n=0u;
             while(root_listing[pos]&&root_listing[pos]!='\n'&&n<20u)line[n++]=root_listing[pos++];
             while(root_listing[pos]&&root_listing[pos]!='\n')pos++;
             if(root_listing[pos]=='\n')pos++;
-            line[n]='\0';nova_font_draw_text(5u,y,line,COLOR_TEXT,COLOR_BG);y=(uint16_t)(y+12u);
+            line[n]='\0';
+            if(apps_open&&row==app_selection)nova_display_fill_rect(3u,(uint16_t)(y-1u),(uint16_t)(w-6u),10u,COLOR_PANEL);
+            nova_font_draw_text(5u,y,line,COLOR_TEXT,apps_open?COLOR_PANEL:COLOR_BG);
+            y=(uint16_t)(y+12u);row++;
         }
     }else{
         nova_font_draw_text(5u,25u,"LAUNCHER",COLOR_ACCENT,COLOR_BG);
