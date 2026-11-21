@@ -6,6 +6,7 @@
 #include "pico/mutex.h"
 #include "nova/fs.h"
 #include "nova/storage_owner.h"
+#include "nova/sha256.h"
 
 void nova_diskio_bind(nova_sd_card_t *card);
 static FATFS filesystem;
@@ -70,6 +71,40 @@ int nova_fs_read_file(const char *path,uint8_t *buffer,size_t capacity,size_t *r
     if(r!=FR_OK){fs_unlock();return -(int)r-10;}
     UINT amount=0u;r=f_read(&file,buffer,(UINT)(capacity>UINT_MAX?UINT_MAX:capacity),&amount);
     FRESULT close_result=f_close(&file);*read_bytes=(size_t)amount;
+    fs_unlock();return r==FR_OK&&close_result==FR_OK?0:-2;
+}
+int nova_fs_read_range(const char *path,uint32_t offset,void *buffer,uint32_t length){
+    if(!path||(!buffer&&length))return -1;
+    fs_lock();if(!mounted){fs_unlock();return -1;}
+    FIL file;FRESULT r=f_open(&file,path,FA_READ);
+    if(r!=FR_OK){fs_unlock();return -(int)r-10;}
+    r=f_lseek(&file,(FSIZE_t)offset);UINT amount=0u;
+    if(r==FR_OK)r=f_read(&file,buffer,(UINT)length,&amount);
+    FRESULT close_result=f_close(&file);fs_unlock();
+    return r==FR_OK&&close_result==FR_OK&&amount==length?0:-2;
+}
+int nova_fs_file_size(const char *path,uint32_t *size){
+    if(!path||!size)return -1;
+    fs_lock();if(!mounted){fs_unlock();return -1;}
+    FILINFO info;FRESULT r=f_stat(path,&info);if(r==FR_OK)*size=(uint32_t)info.fsize;
+    fs_unlock();return r==FR_OK?0:-(int)r-10;
+}
+int nova_fs_sha256_range(const char *path,uint32_t offset,uint32_t length,uint8_t digest[32]){
+    if(!path||!digest)return -1;
+    fs_lock();if(!mounted){fs_unlock();return -1;}
+    FIL file;FRESULT r=f_open(&file,path,FA_READ);
+    if(r!=FR_OK){fs_unlock();return -(int)r-10;}
+    r=f_lseek(&file,(FSIZE_t)offset);
+    nova_sha256_t hash; nova_sha256_init(&hash);
+    uint8_t chunk[1024];uint32_t remaining=length;
+    while(r==FR_OK&&remaining){
+        UINT request=(UINT)(remaining>sizeof(chunk)?sizeof(chunk):remaining),amount=0u;
+        r=f_read(&file,chunk,request,&amount);
+        if(r!=FR_OK||amount!=request){r=FR_DISK_ERR;break;}
+        nova_sha256_update(&hash,chunk,amount);remaining-=amount;
+    }
+    FRESULT close_result=f_close(&file);
+    if(r==FR_OK&&close_result==FR_OK)nova_sha256_final(&hash,digest);
     fs_unlock();return r==FR_OK&&close_result==FR_OK?0:-2;
 }
 int nova_fs_write_atomic(const char *path,const void *data,size_t length){
