@@ -4,11 +4,15 @@
 #include "nova/board.h"
 #include "nova/shell.h"
 #include "nova/crash.h"
+#include "nova/ui.h"
+#include "nova/battery.h"
 int main(void) {
     stdio_init_all();
     sleep_ms(1200);
     nova_kernel_init();
     nova_board_init();
+    (void)nova_battery_init();
+    nova_ui_init();
     multicore_launch_core1(nova_core1_entry);
     nova_shell_write("\n\nNOVA OS Kernel Alpha 1.3.0\n");
     nova_shell_write("Independent embedded OS research build\n");
