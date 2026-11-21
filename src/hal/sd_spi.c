@@ -13,6 +13,7 @@
 #define SD_CMD58 58u
 #define SD_ACMD41 41u
 #define SD_TOKEN_START 0xFEu
+static bool wait_data_token(nova_sd_card_t *c) { for (unsigned i=0u; i<100000u; ++i) if (xfer(c,0xFFu)==SD_TOKEN_START) return true; return false; }
 static uint8_t xfer(nova_sd_card_t *c, uint8_t v) { uint8_t r=0xFFu; (void)spi_write_read_blocking(c->spi,&v,&r,1u); return r; }
 static void clocks(nova_sd_card_t *c, unsigned n) { while(n--) (void)xfer(c,0xFFu); }
 static uint8_t command(nova_sd_card_t *c,uint8_t cmd,uint32_t arg,uint8_t crc) {
