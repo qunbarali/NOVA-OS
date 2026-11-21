@@ -31,18 +31,30 @@ static void render(void){
     nova_battery_info_t battery;char battery_label[12]="BAT --";
     if(nova_battery_read(&battery)) (void)snprintf(battery_label,sizeof(battery_label),"BAT %u%%",(unsigned)battery.percent);
     nova_font_draw_text((uint16_t)(w>54u?w-54u:4u),5u,battery_label,COLOR_ACCENT,0x001Fu);
-    nova_font_draw_text(5u,25u,"LAUNCHER",COLOR_ACCENT,COLOR_BG);
-    uint16_t row_h=16u;
-    for(uint8_t i=0u;i<4u;i++){
-        uint16_t y=(uint16_t)(40u+(uint16_t)i*row_h);
-        if(y+14u>=h-24u)break;
-        nova_display_fill_rect(3u,y,(uint16_t)(w-6u),14u,i==selected?COLOR_ACCENT:COLOR_PANEL);
-        nova_font_draw_text(7u,(uint16_t)(y+3u),menu_items[i],i==selected?COLOR_BG:COLOR_TEXT,i==selected?COLOR_ACCENT:COLOR_PANEL);
+    if(files_open){
+        nova_font_draw_text(5u,25u,"SD FILES",COLOR_ACCENT,COLOR_BG);
+        char line[21];size_t pos=0u;uint16_t y=42u;
+        while(root_listing[pos]&&y+10u<h-20u){
+            size_t n=0u;
+            while(root_listing[pos]&&root_listing[pos]!='\\n'&&n<20u)line[n++]=root_listing[pos++];
+            while(root_listing[pos]&&root_listing[pos]!='\\n')pos++;
+            if(root_listing[pos]=='\\n')pos++;
+            line[n]='\\0';nova_font_draw_text(5u,y,line,COLOR_TEXT,COLOR_BG);y=(uint16_t)(y+12u);
+        }
+    }else{
+        nova_font_draw_text(5u,25u,"LAUNCHER",COLOR_ACCENT,COLOR_BG);
+        uint16_t row_h=16u;
+        for(uint8_t i=0u;i<4u;i++){
+            uint16_t y=(uint16_t)(40u+(uint16_t)i*row_h);
+            if(y+14u>=h-24u)break;
+            nova_display_fill_rect(3u,y,(uint16_t)(w-6u),14u,i==selected?COLOR_ACCENT:COLOR_PANEL);
+            nova_font_draw_text(7u,(uint16_t)(y+3u),menu_items[i],i==selected?COLOR_BG:COLOR_TEXT,i==selected?COLOR_ACCENT:COLOR_PANEL);
+        }
     }
     nova_display_fill_rect(0u,(uint16_t)(h-18u),w,18u,COLOR_PANEL);
     nova_font_draw_text(4u,(uint16_t)(h-13u),status_text,COLOR_MUTED,COLOR_PANEL);
 }
-void nova_ui_init(void){selected=0u;initialized=true;render();}
+void nova_ui_init(void){selected=0u;files_open=false;root_listing[0]='\\0';initialized=true;render();}
 void nova_ui_set_status(const char *message){
     if(!message)return;
     size_t n=strlen(message);if(n>=sizeof(status_text))n=sizeof(status_text)-1u;
