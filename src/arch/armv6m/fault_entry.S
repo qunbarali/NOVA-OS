@@ -17,5 +17,7 @@ HardFault_Handler:
 1:
     mrs r0, msp
 2:
-    b nova_arch_fault_entry
+    /* Cortex-M0+ only has a short unconditional branch encoding. */
+    ldr r3, =nova_arch_fault_entry
+    bx r3
 .size HardFault_Handler, .-HardFault_Handler
