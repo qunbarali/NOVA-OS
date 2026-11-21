@@ -80,14 +80,16 @@ static void update_stack_usage(task_control_t *task) {
 static void initialize_stack(task_control_t *task) {
     for (size_t i = 0u; i < NOVA_STACK_GUARD_WORDS; ++i) task->guard[i] = NOVA_STACK_GUARD_WORD;
     for (size_t i = 0u; i < NOVA_TASK_STACK_WORDS; ++i) task->stack[i] = NOVA_STACK_FILL_WORD;
-    uintptr_t *sp = (uintptr_t *)&task->stack[NOVA_TASK_STACK_WORDS];
-    uintptr_t entry_pc = 0u;
+    /* The saved Cortex-M context is defined in 32-bit words. Keep that
+       representation in host tests too, where uintptr_t may be 64-bit. */
+    uint32_t *sp = &task->stack[NOVA_TASK_STACK_WORDS];
+    uint32_t entry_pc = 0u;
 #ifndef NOVA_HOST_TEST
-    entry_pc = (uintptr_t)(void (*)(void))task_bootstrap;
+    entry_pc = (uint32_t)(uintptr_t)(void (*)(void))task_bootstrap;
 #endif
     *--sp = entry_pc;
 #if defined(NOVA_ARCH_ARMV6M) || defined(NOVA_ARCH_ARMV8M) || defined(NOVA_HOST_TEST)
-    /* Model the eight saved callee registers in the host stack watermark test too. */
+    /* Eight saved callee-register words plus the entry PC form the initial frame. */
     for (size_t i = 0u; i < 8u; ++i) *--sp = 0u;
 #else
 #error "Select a NOVA Cortex-M architecture port"
