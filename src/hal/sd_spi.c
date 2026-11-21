@@ -49,12 +49,13 @@ int nova_sd_init(nova_sd_card_t *c,spi_inst_t *spi,uint8_t sck,uint8_t tx,uint8_
     uint8_t r=command(c,SD_CMD0,0u,0x95u);nova_spi_bus_release(cs);if(r!=1u)return -4;
     if(nova_spi_bus_acquire(spi,cs)!=0)return -3;
     r=command(c,SD_CMD8,0x1AAu,0x87u);
-    if(r==1u){uint8_t v[4];for(size_t i=0;i<4u;i++)v[i]=xfer(c,0xFFu);if(v[2]!=0x01u||v[3]!=0xAAu){nova_spi_bus_release(cs);return -5;}}
+    bool version2 = (r == 1u);
+    if(version2){uint8_t v[4];for(size_t i=0;i<4u;i++)v[i]=xfer(c,0xFFu);if(v[2]!=0x01u||v[3]!=0xAAu){nova_spi_bus_release(cs);return -5;}}
     nova_spi_bus_release(cs);
     bool ready=false;
     for(unsigned i=0;i<1000u&&!ready;i++){
         if(nova_spi_bus_acquire(spi,cs)!=0)return -3;
-        (void)command(c,SD_CMD55,0u,0x01u);r=command(c,SD_ACMD41,(r==1u)?0x40000000u:0u,0x01u);
+        (void)command(c,SD_CMD55,0u,0x01u);r=command(c,SD_ACMD41,version2?0x40000000u:0u,0x01u);
         nova_spi_bus_release(cs);if(r==0u)ready=true;else sleep_ms(1u);
     }
     if(!ready)return -6;
@@ -64,17 +65,20 @@ int nova_sd_init(nova_sd_card_t *c,spi_inst_t *spi,uint8_t sck,uint8_t tx,uint8_
     c->high_capacity=(ocr[0]&0x40u)!=0u;
     if(!c->high_capacity && command(c,SD_CMD16,512u,0x01u)!=0u){nova_spi_bus_release(cs);return -8;}
     nova_spi_bus_release(cs);
+    (void)spi_set_baudrate(spi, c->baudrate);
     c->initialized=true;c->sector_count=0u;return 0;
 }
 int nova_sd_read(nova_sd_card_t *c,uint32_t first,uint8_t *buffer,uint32_t count) {
     if(!c||!c->initialized||!buffer||!count||first>UINT32_MAX-count)return -1;
     if(nova_spi_bus_acquire(c->spi,c->cs_pin)!=0)return -2;
+    (void)spi_set_baudrate(c->spi,c->baudrate);
     int result=0;for(uint32_t i=0;i<count;i++){result=read_one(c,first+i,buffer+(size_t)i*512u);if(result)break;}
     nova_spi_bus_release(c->cs_pin);return result;
 }
 int nova_sd_write(nova_sd_card_t *c,uint32_t first,const uint8_t *buffer,uint32_t count) {
     if(!c||!c->initialized||!buffer||!count||first>UINT32_MAX-count)return -1;
     if(nova_spi_bus_acquire(c->spi,c->cs_pin)!=0)return -2;
+    (void)spi_set_baudrate(c->spi,c->baudrate);
     int result=0;for(uint32_t i=0;i<count;i++){result=write_one(c,first+i,buffer+(size_t)i*512u);if(result)break;}
     nova_spi_bus_release(c->cs_pin);return result;
 }
