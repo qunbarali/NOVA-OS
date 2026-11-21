@@ -19,6 +19,7 @@ int nova_fs_mount(void){
 }
 int nova_fs_unmount(void){
     if(!mounted)return 0;
+    if(nova_fs_sync()!=0)return -3;
     FRESULT result=f_mount(NULL,"0:",0u);
     if(result!=FR_OK)return -(int)result-10;
     mounted=false;return nova_storage_release(NOVA_STORAGE_OWNER_KERNEL)?0:-2;
