@@ -48,6 +48,9 @@ int nova_fs_write_atomic(const char *path,const void *data,size_t length){
     char temp[256],backup[256];
     int a=snprintf(temp,sizeof(temp),"%s.NVT",path),b=snprintf(backup,sizeof(backup),"%s.NVB",path);
     if(a<0||b<0||(size_t)a>=sizeof(temp)||(size_t)b>=sizeof(backup))return -2;
+    FILINFO recovery_info;
+    if(f_stat(path,&recovery_info)!=FR_OK&&f_stat(backup,&recovery_info)==FR_OK)(void)f_rename(backup,path);
+    (void)f_unlink(temp);
     FIL file;FRESULT r=f_open(&file,temp,FA_CREATE_ALWAYS|FA_WRITE);if(r!=FR_OK)return -(int)r-10;
     size_t offset=0u;
     while(offset<length){UINT chunk=(UINT)((length-offset)>4096u?4096u:(length-offset)),written=0u;r=f_write(&file,(const uint8_t *)data+offset,chunk,&written);if(r!=FR_OK||written!=chunk){(void)f_close(&file);(void)f_unlink(temp);return -3;}offset+=written;}
