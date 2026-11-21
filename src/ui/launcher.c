@@ -36,10 +36,10 @@ static void render(void){
         char line[21];size_t pos=0u;uint16_t y=42u;
         while(root_listing[pos]&&y+10u<h-20u){
             size_t n=0u;
-            while(root_listing[pos]&&root_listing[pos]!='\\n'&&n<20u)line[n++]=root_listing[pos++];
-            while(root_listing[pos]&&root_listing[pos]!='\\n')pos++;
-            if(root_listing[pos]=='\\n')pos++;
-            line[n]='\\0';nova_font_draw_text(5u,y,line,COLOR_TEXT,COLOR_BG);y=(uint16_t)(y+12u);
+            while(root_listing[pos]&&root_listing[pos]!='\n'&&n<20u)line[n++]=root_listing[pos++];
+            while(root_listing[pos]&&root_listing[pos]!='\n')pos++;
+            if(root_listing[pos]=='\n')pos++;
+            line[n]='\0';nova_font_draw_text(5u,y,line,COLOR_TEXT,COLOR_BG);y=(uint16_t)(y+12u);
         }
     }else{
         nova_font_draw_text(5u,25u,"LAUNCHER",COLOR_ACCENT,COLOR_BG);
@@ -54,7 +54,7 @@ static void render(void){
     nova_display_fill_rect(0u,(uint16_t)(h-18u),w,18u,COLOR_PANEL);
     nova_font_draw_text(4u,(uint16_t)(h-13u),status_text,COLOR_MUTED,COLOR_PANEL);
 }
-void nova_ui_init(void){selected=0u;files_open=false;root_listing[0]='\\0';initialized=true;render();}
+void nova_ui_init(void){selected=0u;files_open=false;root_listing[0]='\0';initialized=true;render();}
 void nova_ui_set_status(const char *message){
     if(!message)return;
     size_t n=strlen(message);if(n>=sizeof(status_text))n=sizeof(status_text)-1u;
@@ -63,12 +63,28 @@ void nova_ui_set_status(const char *message){
 void nova_ui_poll(void){
     if(!initialized)return;
     nova_input_poll();uint8_t events=nova_input_take_events();bool changed=false;
+    if(files_open){
+        if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){
+            (void)nova_fs_unmount();files_open=false;strcpy(status_text,"SYSTEM READY");changed=true;
+        }
+        if(changed)render();
+        return;
+    }
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_UP)){selected=(uint8_t)((selected+3u)%4u);changed=true;}
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_DOWN)){selected=(uint8_t)((selected+1u)%4u);changed=true;}
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){strcpy(status_text,"SYSTEM READY");changed=true;}
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT)){
-        static const char *const messages[]={"NO APPS INSTALLED","SD FILE BROWSER","USB NOT CONNECTED","NOVA SYSTEM INFO"};
-        size_t n=strlen(messages[selected]);memcpy(status_text,messages[selected],n+1u);changed=true;
+        if(selected==1u){
+            if(nova_fs_mount()==0){
+                int n=nova_fs_list_root(root_listing,sizeof(root_listing));
+                if(n>=0){files_open=true;strcpy(status_text,"SD FILES READY");}
+                else {(void)nova_fs_unmount();strcpy(status_text,"FAT32 READ ERROR");}
+            }else strcpy(status_text,"NO SD OR FAT32");
+        }else if(selected==2u){
+            strcpy(status_text,nova_storage_current_owner()==NOVA_STORAGE_OWNER_USB?"USB MSC ACTIVE":"USB CDC READY");
+        }else if(selected==0u)strcpy(status_text,"NO APPS INSTALLED");
+        else strcpy(status_text,"NOVA SYSTEM INFO");
+        changed=true;
     }
     if(changed)render();
     (void)nova_uptime_ms();
