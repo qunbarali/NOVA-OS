@@ -63,4 +63,4 @@ These tests do not replace cross-compiling both boards or physical hardware vali
 ## Manual GitHub firmware builds
 Open Actions → NOVA OS firmware build → Run workflow. The workflow is manual-only, targets RP2040 and RP2350 Cortex-M33 using Pico SDK 2.3.1, and publishes firmware artifacts. No push or pull-request trigger is configured.
 
-See [Alpha 1.3 notes](docs/ALPHA_1_3.md), [display and application platform](docs/DISPLAY_AND_APPLICATION_PLATFORM.md), [Windows IDE specification](docs/NOVA_WINDOWS_IDE_SPEC.md), [architecture](docs/ARCHITECTURE.md), and [hardware test plan](docs/PHASE1_TEST_PLAN.md).
+See [USB and battery architecture](docs/USB_AND_BATTERY_ARCHITECTURE.md), [Alpha 1.3 notes](docs/ALPHA_1_3.md), [display and application platform](docs/DISPLAY_AND_APPLICATION_PLATFORM.md), [Windows IDE specification](docs/NOVA_WINDOWS_IDE_SPEC.md), [architecture](docs/ARCHITECTURE.md), and [hardware test plan](docs/PHASE1_TEST_PLAN.md).
