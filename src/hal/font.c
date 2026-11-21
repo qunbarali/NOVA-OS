@@ -42,11 +42,12 @@ static const uint8_t *glyph(char c) {
     return blank;
 }
 void nova_font_draw_char(uint16_t x,uint16_t y,char value,uint16_t fg,uint16_t bg){
-    const uint8_t *bits=glyph(value);
+    const uint8_t *bits=glyph(value);uint16_t pixels[48];
     for(uint16_t row=0;row<8u;row++)for(uint16_t col=0;col<6u;col++){
         bool on=col<5u&&row<7u&&((bits[col]>>row)&1u)!=0u;
-        nova_display_pixel((uint16_t)(x+col),(uint16_t)(y+row),on?fg:bg);
+        pixels[(size_t)row*6u+col]=on?fg:bg;
     }
+    nova_display_blit_rgb565(x,y,6u,8u,pixels);
 }
 void nova_font_draw_text(uint16_t x,uint16_t y,const char *text,uint16_t fg,uint16_t bg){
     if(!text)return;
