@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include "ff.h"
@@ -55,5 +56,5 @@ int nova_fs_write_atomic(const char *path,const void *data,size_t length){
     if(had_old&&f_rename(path,backup)!=FR_OK){(void)f_unlink(temp);return -5;}
     if(f_rename(temp,path)!=FR_OK){if(had_old)(void)f_rename(backup,path);(void)f_unlink(temp);return -6;}
     if(had_old)(void)f_unlink(backup);
-    return f_sync(&file)==FR_OK?0:0;
+    return nova_fs_sync();
 }
