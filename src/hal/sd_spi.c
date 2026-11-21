@@ -24,8 +24,7 @@ static uint8_t command(nova_sd_card_t *c,uint8_t cmd,uint32_t arg,uint8_t crc) {
 static uint32_t address(const nova_sd_card_t *c,uint32_t sector){return c->high_capacity?sector:sector*512u;}
 static int read_one(nova_sd_card_t *c,uint32_t sector,uint8_t *out) {
     uint8_t r=command(c,SD_CMD17,address(c,sector),0x01u); if(r!=0u)return -1;
-    uint32_t wait=100000u; while(wait-- && xfer(c,0xFFu)!=SD_TOKEN_START) { }
-    if(wait==0u)return -2;
+    if (!wait_data_token(c)) return -2;
     for(size_t i=0;i<512u;i++)out[i]=xfer(c,0xFFu);
     (void)xfer(c,0xFFu);(void)xfer(c,0xFFu);(void)xfer(c,0xFFu);
     return 0;
@@ -36,14 +35,12 @@ static int write_one(nova_sd_card_t *c,uint32_t sector,const uint8_t *in) {
     for(size_t i=0;i<512u;i++)(void)xfer(c,in[i]);
     (void)xfer(c,0xFFu);(void)xfer(c,0xFFu);
     if((xfer(c,0xFFu)&0x1Fu)!=0x05u)return -2;
-    uint32_t wait=500000u;while(wait-- && xfer(c,0xFFu)==0u){} if(wait==0u)return -3;
+    bool ready=false; for(unsigned i=0u;i<500000u;i++){if(xfer(c,0xFFu)!=0u){ready=true;break;}} if(!ready)return -3;
     return 0;
 }
 static uint32_t read_capacity_sectors(nova_sd_card_t *c) {
     if (command(c, 9u, 0u, 0x01u) != 0u) return 0u;
-    uint32_t wait = 100000u;
-    while (wait-- && xfer(c, 0xFFu) != SD_TOKEN_START) { }
-    if (wait == 0u) return 0u;
+    if (!wait_data_token(c)) return 0u;
     uint8_t csd[16];
     for (size_t i = 0u; i < sizeof(csd); ++i) csd[i] = xfer(c, 0xFFu);
     (void)xfer(c, 0xFFu); (void)xfer(c, 0xFFu);
