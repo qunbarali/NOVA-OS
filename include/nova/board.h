@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 void nova_board_init(void);
+void nova_board_peripherals_init(void);
 void nova_led_set(bool on);
 bool nova_led_get(void);
 const char *nova_board_name(void);
