@@ -95,7 +95,7 @@ void nova_board_peripherals_init(void) {
     if (sd_ready) {
         (void)nova_fs_bind(&sd_card);
         const nova_device_t storage = {
-            .id = 0u, .name = "sd0", .device_class = NOVA_DEVICE_STORAGE,
+            .id = 1u, .name = "sd0", .device_class = NOVA_DEVICE_STORAGE,
             .capabilities = NOVA_DEVICE_CAP_CTRL, .ops = &sd_device_ops, .context = &sd_card
         };
         (void)nova_device_register(&storage);
