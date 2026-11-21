@@ -44,6 +44,7 @@ add_executable(nova_os
     src/usb/usb.c
     src/usb/usb_descriptors.c
     third_party/fatfs/ff.c
+    third_party/fatfs/ffunicode.c
     src/hal/input.c
     src/hal/spi_bus.c
     src/hal/sd_spi.c
