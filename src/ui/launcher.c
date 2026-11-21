@@ -8,6 +8,7 @@
 #include "nova/kernel.h"
 #include "nova/fs.h"
 #include "nova/storage_owner.h"
+#include "nova/app_package.h"
 #include "nova/battery.h"
 #include <stdio.h>
 
@@ -23,7 +24,7 @@ static bool initialized;
 static bool files_open;
 static bool apps_open;
 static uint8_t app_selection;
-static char root_listing[256];
+static char root_listing[2048];
 static void render(void){
     uint16_t w=nova_display_width(),h=nova_display_height();
     if(!nova_display_is_ready())return;
@@ -65,6 +66,28 @@ void nova_ui_set_status(const char *message){
     size_t n=strlen(message);if(n>=sizeof(status_text))n=sizeof(status_text)-1u;
     memcpy(status_text,message,n);status_text[n]='\0';if(initialized)render();
 }
+static bool selected_package_path(char *path,size_t capacity){
+    size_t pos=0u;uint8_t row=0u;
+    while(root_listing[pos]){
+        size_t start=pos;while(root_listing[pos]&&root_listing[pos]!='\n')pos++;
+        size_t length=pos-start;
+        if(row==app_selection){
+            if(length==0u||length>=256u)return false;
+            char name[256];memcpy(name,root_listing+start,length);name[length]='\0';
+            size_t n=strlen(name);
+            if(n<5u||name[n-5u]!='.'||
+               (name[n-4u]!='n'&&name[n-4u]!='N')||
+               (name[n-3u]!='o'&&name[n-3u]!='O')||
+               (name[n-2u]!='v'&&name[n-2u]!='V')||
+               (name[n-1u]!='a'&&name[n-1u]!='A'))return false;
+            int written=snprintf(path,capacity,"0:/NOVA/APPS/%s",name);
+            return written>0&&(size_t)written<capacity;
+        }
+        if(root_listing[pos]=='\n')pos++;
+        row++;
+    }
+    return false;
+}
 void nova_ui_poll(void){
     if(!initialized)return;
     nova_input_poll();uint8_t events=nova_input_take_events();bool changed=false;
@@ -74,7 +97,7 @@ void nova_ui_poll(void){
             uint8_t count=0u;for(size_t i=0u;root_listing[i];i++)if(root_listing[i]=='\n')count++;
             if(app_selection+1u<count){app_selection++;changed=true;}
         }
-        if(apps_open&&(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT))){strcpy(status_text,"APP RUNTIME PENDING");changed=true;}
+        if(apps_open&&(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT))){char path[320];nova_app_package_info_t info;if(selected_package_path(path,sizeof(path))&&nova_app_package_validate(path,&info)==0)strcpy(status_text,"APP VERIFIED");else strcpy(status_text,"INVALID APP PACKAGE");changed=true;}
         if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){
             (void)nova_fs_unmount();files_open=false;apps_open=false;strcpy(status_text,"SYSTEM READY");changed=true;
         }
@@ -88,7 +111,7 @@ void nova_ui_poll(void){
         if(selected==0u||selected==1u){
             if(nova_fs_mount()==0){
                 int n=selected==0u?nova_fs_list_directory("0:/NOVA/APPS",root_listing,sizeof(root_listing)):nova_fs_list_root(root_listing,sizeof(root_listing));
-                if(n>=0){files_open=true;apps_open=selected==0u;app_selection=0u;strcpy(status_text,apps_open?"APP CATALOG":"SD FILES READY");}
+                if(n>0){files_open=true;apps_open=selected==0u;app_selection=0u;strcpy(status_text,apps_open?"APP CATALOG":"SD FILES READY");}
                 else {(void)nova_fs_unmount();strcpy(status_text,selected==0u?"NO APPS FOUND":"FAT32 READ ERROR");}
             }else strcpy(status_text,"NO SD OR FAT32");
         }else if(selected==2u){
