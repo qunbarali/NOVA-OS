@@ -24,6 +24,8 @@ add_executable(nova_os
     src/hal/board.c
     src/hal/display.c
     src/hal/input.c
+    src/hal/spi_bus.c
+    src/hal/sd_spi.c
     src/shell/shell.c
 )
 if(PICO_PLATFORM STREQUAL "rp2040")
