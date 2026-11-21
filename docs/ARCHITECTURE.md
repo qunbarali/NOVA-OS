@@ -15,7 +15,9 @@ NOVA is an independently designed embedded operating system, not a Linux, Androi
 ## Current Alpha 1.3 execution model
 - Core 0 initializes the board/kernel and owns the USB CDC command shell.
 - The optional display HAL provides RGB565 drawing primitives for ST7735 and ILI9341 SPI panels. Panel dimensions and offsets are caller-configured; panel orientation, color order and clone-specific sequences still require validation.
-- The optional four-key input HAL samples active-low Up/Down/Select/Back GPIOs with pull-ups and 25 ms debounce. It latches press events for polling consumers. Neither peripheral is automatically initialized by board startup yet.
+- The optional four-key input HAL samples active-low Up/Down/Select/Back GPIOs with pull-ups and 25 ms debounce. It latches press events for polling consumers.
+- Board startup selects a compile-time ST7735/ILI9341 panel profile, initializes four active-low keypad inputs, and attempts SD SPI initialization; a detected card is registered as `sd0` for block-control operations. The suggested GPIO map must be matched to the user's carrier wiring.
+- The SD layer supports SPI initialization, CSD capacity detection, 512-byte sector reads/writes and bounds checks. FAT32, USB MSC export and filesystem ownership handoff are not yet present.
 - Core 0 runs an eight-slot cooperative state-machine scheduler from the shell's polling loop. Ready tasks are dispatched by numeric priority (lower value first); equal-priority tasks use rotating scan order.
 - A repeating 1 ms hardware timer callback increments an atomic system tick counter.
 - Core 1 runs a diagnostic heartbeat service; it is not a second scheduler.
