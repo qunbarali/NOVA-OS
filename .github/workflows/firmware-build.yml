@@ -109,7 +109,8 @@ jobs:
             -DPICO_BOARD=${{ matrix.board }} \
             -DPICO_PLATFORM=${{ matrix.platform }} \
             -DPICO_SDK_PATH="$GITHUB_WORKSPACE/pico-sdk" \
-            -DCMAKE_BUILD_TYPE=Release \\\n            -DNOVA_DISPLAY_ILI9341=${{ matrix.ili9341 }}
+            -DCMAKE_BUILD_TYPE=Release \
+            -DNOVA_DISPLAY_ILI9341=${{ matrix.ili9341 }}
 
       - name: Compile firmware
         run: cmake --build "build-${{ matrix.board }}" --parallel
