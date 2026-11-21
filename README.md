@@ -1,74 +1,66 @@
-# NOVA OS — Kernel Alpha 1.2.0
+# NOVA OS — Kernel Alpha 1.3.0
 
-NOVA is an independently designed embedded operating system project for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target). Alpha 1.2 brings together the device registry, blocking IPC, cross-core shared-service locking, task stack protection and HardFault diagnostics built across Alpha 0.5–1.2.
+NOVA is an independently designed embedded operating system for Raspberry Pi Pico (RP2040) and Raspberry Pi Pico 2 (RP2350 Cortex-M33 target). Alpha 1.3 adds the first optional display-controller and four-button input foundations on top of the Alpha 1.2 kernel.
 
-## Alpha 1.2 features
-- Correct per-task stack high-water measurement for downward-growing Cortex-M stacks
-- Initial saved context frame included in stack usage baseline
-- Four-word stack guard checks retained; guard corruption faults the task
-- Stack high-water budget is capped at 480 of 512 bytes; tasks crossing the budget are quarantined
-- Eight-slot resumable cooperative scheduler with priority-ordered dispatch and round-robin tie-breaking
-- Task creation, suspension, resumption, termination, cooperative yield, resumable sleep and blocked wait states
-- Timeout-aware blocking queue send/receive and event-flag waits
-- Static device registry with typed classes, capability flags and driver read/write/control operations
-- Onboard LED exposed as the `led0` GPIO device; inspect with `devices`
-- Per-task saved stack pointers and architecture-specific Cortex-M0+ / Cortex-M33 context switches
-- Task state, priority and dispatch diagnostics
-- Bounded eight-entry task fault journal with sequence, tick, task identity and reason; inspect with `faults`
-- Minimal Cortex-M HardFault frame capture retained in watchdog scratch registers; inspect with `crash` after watchdog restart
-- Scheduler-detected stack-guard, invalid-result and invalid-return-state fault records
-- Invalid task callback results are isolated as FAULTED slots
-- Core-local interrupt save/restore critical-section API for short core-0 sections
-- RP hardware-spinlock service protecting shared IPC primitives and fixed memory-pool metadata across cores
-- 1 ms hardware timer interrupt with atomic system tick counter
-- Fixed memory pool: eight 32-byte blocks
-- Bounded IPC message queues: eight 32-byte messages with variable-length payloads
-- Task-owner-tracked, non-blocking mutex and event-flag primitives
-- Scheduler polling integrated into the USB CDC shell
-- LED demo task: task demo / task stop
-- Separate Pico and Pico 2 build targets
+## Alpha 1.3 additions
+- Common RGB565 display API with selectable ST7735 and ILI9341 controllers
+- Configurable panel dimensions and X/Y offsets for common display-module variants
+- SPI display initialization, screen fill, rectangle and pixel primitives
+- Four-button GPIO input API: Up, Down, Select and Back
+- Active-low buttons with internal pull-ups, stable-state tracking and 25 ms debounce
+- Latched press events consumed by the application/UI polling loop
+- Source-contract checks for both display controller paths and the keypad API
+
+## Alpha 1.2 kernel capabilities
+- Eight-slot cooperative scheduler with priority dispatch and round-robin tie-breaking
+- Persistent task stacks, stack guards, high-water measurement and task fault journal
+- Timeout-aware queue and event blocking APIs
+- Static device registry and onboard LED device
+- RP hardware-spinlock protection for shared IPC and memory-pool metadata
+- Cortex-M0+ and Cortex-M33 context-switch and HardFault entry ports
+- USB CDC shell, timer ticks and board diagnostics
+
+## Display modules
+Supported controller families:
+- ST7735: configure the actual module's visible width/height (commonly 128x160) and offsets. Variants may use different offsets, color order and initialization settings.
+- ILI9341: configure the actual module's visible width/height (commonly 240x320) and offsets.
+
+The display driver currently uses SPI and a dedicated chip-select, D/C and reset signal. Backlight is optional. The current implementation is a controller foundation; module-specific orientation, RGB/BGR order and clone-specific initialization still require hardware validation.
+
+## Proposed prototype wiring
+This is a suggested pin assignment, not a board-wide fixed standard:
+- SPI0: GP18 SCK, GP19 MOSI, GP16 MISO
+- Display: GP13 CS, GP12 D/C, GP11 RESET, GP10 optional backlight
+- SD card: GP17 CS (future driver; shared SPI arbitration is not yet implemented)
+- Four active-low buttons: GP2 Up, GP3 Down, GP4 Select, GP5 Back
+
+Do not connect a module until its pin labels and logic-voltage requirements are checked. Avoid powering a 5 V-only module signal directly from a Pico GPIO.
+
+## Current limitations
+- Display and SD do not yet share an SPI bus manager; SD/FAT32 is not implemented.
+- The keypad driver is available but is not yet enabled in board startup or connected to a graphical launcher.
+- There is no display text/font renderer or application launcher yet.
+- The Windows NOVA IDE is specified but not implemented.
+- No NOVA application ABI, executable loader or process isolation exists. Arbitrary ELF/BIN execution is not supported.
+- UF2 remains a firmware flashing/recovery image, not a normal SD-launched application.
+- Display controller support has not yet been compiled by the user's manual workflow or validated on physical panels.
 
 ## Windows prerequisites
-Install Git, CMake, Ninja, Python 3, ARM GNU Toolchain (arm-none-eabi-gcc) and the Raspberry Pi Pico SDK with its required submodules. Set PICO_SDK_PATH to the SDK directory.
+Install Git, CMake, Ninja, Python 3, ARM GNU Toolchain (arm-none-eabi-gcc) and Raspberry Pi Pico SDK with required submodules. Set PICO_SDK_PATH.
 
 ## Build both targets
-
 ```powershell
 .\scripts\build-all.ps1
 ```
+Expected outputs: build-pico\\nova_os.uf2 and build-pico2\\nova_os.uf2.
 
-Expected outputs: build-pico\nova_os.uf2 and build-pico2\nova_os.uf2.
-
-## Install and test
-Put the board into BOOTSEL mode, copy the matching UF2 to its RPI-RP2 drive, then open the USB CDC COM port. Try:
-
-```text
-version
-system
-tasks
-task demo
-tasks
-memory
-devices
-device led0 on
-device led0 off
-task stop
-tasks
-```
-
-## Manual GitHub firmware builds
-Open Actions → NOVA OS firmware build → Run workflow. The workflow is manual-only and builds both RP2040 (pico) and RP2350 Cortex-M33 (pico2) targets using the pinned Pico SDK 2.3.1. It runs source-contract, native scheduler, IPC and device-manager tests, then publishes separate UF2/ELF artifacts for 14 days. No push or pull-request trigger is configured.
-
-## Tests
-Run source-contract checks:
-
+## Source-contract tests
 ```powershell
 python -m unittest discover -s tests -v
 ```
+These tests do not replace cross-compiling both boards or physical hardware validation.
 
-These checks are not a substitute for compiling both firmware targets or testing on physical boards.
+## Manual GitHub firmware builds
+Open Actions → NOVA OS firmware build → Run workflow. The workflow is manual-only, targets RP2040 and RP2350 Cortex-M33 using Pico SDK 2.3.1, and publishes firmware artifacts. No push or pull-request trigger is configured.
 
-## Important architecture limitations
-Alpha 1.2 retains cooperative, resumable tasks on independent 512-byte stacks. Scheduling is not preemptive: tasks must yield, sleep or return. Core 1 remains a diagnostic heartbeat. Queue, mutex, event, device registry, onboard LED state and fixed-pool metadata are protected by an RP hardware spinlock; task scheduling remains core-0-only. Stack guards and high-water reporting are diagnostics, not MPU protection. No process isolation or general-purpose heap exists yet.
-
-See [Alpha 1.2 notes](docs/ALPHA_1_2.md), [Alpha 1.1 notes](docs/ALPHA_1_1.md), [Alpha 1.0 notes](docs/ALPHA_1_0.md), [Alpha 0.9 notes](docs/ALPHA_0_9.md), [Alpha 0.8 notes](docs/ALPHA_0_8.md), [Alpha 0.7 notes](docs/ALPHA_0_7.md), [Alpha 0.6 notes](docs/ALPHA_0_6.md), [Alpha 0.5 notes](docs/ALPHA_0_5.md), [Alpha 0.4 notes](docs/ALPHA_0_4.md), [Alpha 0.3 notes](docs/ALPHA_0_3.md), [Alpha 0.2 design notes](docs/ALPHA_0_2.md), [architecture](docs/ARCHITECTURE.md) and [Phase 1 hardware test plan](docs/PHASE1_TEST_PLAN.md).
+See [Alpha 1.3 notes](docs/ALPHA_1_3.md), [display and application platform](docs/DISPLAY_AND_APPLICATION_PLATFORM.md), [Windows IDE specification](docs/NOVA_WINDOWS_IDE_SPEC.md), [architecture](docs/ARCHITECTURE.md), and [hardware test plan](docs/PHASE1_TEST_PLAN.md).
