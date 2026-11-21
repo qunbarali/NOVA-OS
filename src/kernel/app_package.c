@@ -1,5 +1,5 @@
 #include <string.h>
-#include "pico/platform.h"
+#include "pico.h"
 #include "nova/app_package.h"
 #include "nova/app_abi.h"
 #include "nova/fs.h"
