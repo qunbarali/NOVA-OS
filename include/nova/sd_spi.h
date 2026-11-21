@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include "hardware/spi.h"
 #define NOVA_SD_SECTOR_SIZE 512u
+#define NOVA_SD_CTRL_GET_INFO 1u
+#define NOVA_SD_CTRL_READ_BLOCKS 2u
+#define NOVA_SD_CTRL_WRITE_BLOCKS 3u
+typedef struct { uint32_t sector_count; uint32_t sector_size; bool high_capacity; } nova_sd_info_t;
+typedef struct { uint32_t first_sector; uint32_t sector_count; void *buffer; } nova_sd_transfer_t;
 typedef struct {
     spi_inst_t *spi;
     uint8_t sck_pin, tx_pin, rx_pin, cs_pin;
