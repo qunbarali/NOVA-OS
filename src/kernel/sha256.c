@@ -48,7 +48,10 @@ void nova_sha256_final(nova_sha256_t *c,uint8_t digest[32]){
     uint64_t bits=c->bit_count;c->block[c->used++]=0x80u;
     if(c->used>56u){while(c->used<64u)c->block[c->used++]=0u;transform(c,c->block);c->used=0u;}
     while(c->used<56u)c->block[c->used++]=0u;
-    for(int i=7;i>=0;i--)c->block[c->used++]=(uint8_t)(bits>>(uint)(i*8));
+    for(uint32_t remaining=8u;remaining>0u;--remaining){
+        const uint32_t shift=(remaining-1u)*8u;
+        c->block[c->used++]=(uint8_t)(bits>>shift);
+    }
     transform(c,c->block);
     for(size_t i=0u;i<8u;i++){digest[i*4u]=(uint8_t)(c->state[i]>>24);digest[i*4u+1u]=(uint8_t)(c->state[i]>>16);digest[i*4u+2u]=(uint8_t)(c->state[i]>>8);digest[i*4u+3u]=(uint8_t)c->state[i];}
     memset(c,0,sizeof(*c));
