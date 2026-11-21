@@ -9,6 +9,9 @@ static int app_display_text(uint16_t x,uint16_t y,const char *text,uint16_t colo
     if(!text||!nova_display_is_ready())return -1;
     nova_font_draw_text(x,y,text,color,0x0000u);return 0;
 }
+static int app_storage_read(const char *path,void *buffer,size_t capacity,size_t *read_bytes){
+    return nova_fs_read_file(path,(uint8_t *)buffer,capacity,read_bytes);
+}
 static void app_yield(void){nova_task_yield();}
 static const nova_app_api_v1_t api={
     .abi_version=NOVA_APP_ABI_VERSION,
@@ -17,7 +20,7 @@ static const nova_app_api_v1_t api={
     .display_text=app_display_text,
     .storage_mount=nova_fs_mount,
     .storage_unmount=nova_fs_unmount,
-    .storage_read=nova_fs_read_file,
+    .storage_read=app_storage_read,
     .storage_write_atomic=nova_fs_write_atomic,
     .yield=app_yield,
     .stop_requested=nova_app_stop_requested
