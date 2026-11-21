@@ -28,6 +28,9 @@ add_executable(nova_os
     src/hal/font.c
     src/ui/launcher.c
     src/hal/battery.c
+    src/hal/diskio.c
+    src/hal/fs.c
+    third_party/fatfs/ff.c
     src/hal/input.c
     src/hal/spi_bus.c
     src/hal/sd_spi.c
@@ -42,7 +45,7 @@ elseif(PICO_PLATFORM STREQUAL "rp2350-arm-s")
 else()
     message(FATAL_ERROR "NOVA currently supports RP2040 and RP2350 Cortex-M33 only; got PICO_PLATFORM=${PICO_PLATFORM}")
 endif()
-target_include_directories(nova_os PRIVATE include)
+target_include_directories(nova_os PRIVATE include third_party/fatfs)
 if(NOVA_DISPLAY_ILI9341)
     target_compile_definitions(nova_os PRIVATE NOVA_DISPLAY_ILI9341=1)
 endif()
