@@ -107,7 +107,7 @@ class NovaAlpha12Tests(unittest.TestCase):
         self.assertIn("nova_system_ticks()", shell)
         self.assertIn("nova_kernel_timer_ready()", shell)
         self.assertIn("nova_task_fault_count()", shell)
-        self.assertIn('NOVA_VERSION "1.2.0"', shell)
+        self.assertIn('NOVA_VERSION "1.3.0"', shell)
         self.assertIn("stack_used_bytes", shell)
         self.assertIn("(high-water; limit=", shell)
 
@@ -152,7 +152,7 @@ class NovaAlpha12Tests(unittest.TestCase):
         self.assertIn("hardware_sync", cmake)
         self.assertIn("isr_hardfault", read("src/arch/armv6m/fault_entry.S"))
         self.assertIn("isr_hardfault", read("src/arch/armv8m/fault_entry.S"))
-        self.assertIn("VERSION 1.2.0", cmake)
+        self.assertIn("VERSION 1.3.0", cmake)
         self.assertIn("set(CMAKE_C_EXTENSIONS ON)", cmake)
         self.assertIn("src/arch/armv6m/call_on_stack.S", cmake)
         self.assertIn("src/arch/armv8m/call_on_stack.S", cmake)
