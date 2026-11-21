@@ -12,6 +12,7 @@ bool nova_storage_release(nova_storage_owner_t current){
     if(current==NOVA_STORAGE_OWNER_NONE)return false;
     unsigned char expected=(unsigned char)current;
     if(!__atomic_compare_exchange_n(&owner,&expected,(unsigned char)NOVA_STORAGE_OWNER_NONE,false,__ATOMIC_ACQ_REL,__ATOMIC_ACQUIRE))return false;
+    if(current==NOVA_STORAGE_OWNER_USB)__atomic_store_n(&usb_ejected,1u,__ATOMIC_RELEASE);
     return true;
 }
 nova_storage_owner_t nova_storage_current_owner(void){
