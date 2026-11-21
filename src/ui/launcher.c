@@ -45,7 +45,7 @@ void nova_ui_poll(void){
     nova_input_poll();uint8_t events=nova_input_take_events();bool changed=false;
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_UP)){selected=(uint8_t)((selected+3u)%4u);changed=true;}
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_DOWN)){selected=(uint8_t)((selected+1u)%4u);changed=true;}
-    if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){memcpy(status_text,"SYSTEM READY",13u);changed=true;}
+    if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){strcpy(status_text,"SYSTEM READY");changed=true;}
     if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT)){
         static const char *const messages[]={"NO APPS INSTALLED","SD FILE BROWSER","USB NOT CONNECTED","NOVA SYSTEM INFO"};
         size_t n=strlen(messages[selected]);memcpy(status_text,messages[selected],n+1u);changed=true;
