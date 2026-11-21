@@ -63,3 +63,21 @@ int32_t tud_msc_write10_cb(uint8_t lun,uint32_t lba,uint32_t offset,uint8_t *buf
     return nova_sd_write(storage_card,lba,buffer,count)==0?(int32_t)size:-1;
 }
 void tud_msc_write10_complete_cb(uint8_t lun){(void)lun;/* SD driver waits for card-ready after every block. */}
+
+/*
+ * Handle the small set of optional SCSI commands commonly issued by desktop
+ * hosts. Read/write, inquiry, capacity and media state use dedicated callbacks.
+ */
+int32_t tud_msc_scsi_cb(uint8_t lun, uint8_t const scsi_cmd[16], void *buffer, uint16_t bufsize) {
+    (void)lun;
+    (void)buffer;
+    (void)bufsize;
+    if (scsi_cmd == NULL) return -1;
+    switch (scsi_cmd[0]) {
+        case 0x1Eu: /* PREVENT/ALLOW MEDIUM REMOVAL */
+        case 0x35u: /* SYNCHRONIZE CACHE(10): writes are already card-ready polled */
+            return 0;
+        default:
+            return -1;
+    }
+}
