@@ -7,7 +7,7 @@
 - Atomic file replacement writes a temporary file, calls f_sync, closes it, moves an existing target to a backup, renames the temporary file into place and syncs the disk. A later replacement attempt restores a backup if a previous replacement was interrupted before the final rename.
 - TinyUSB composite descriptors expose CDC and MSC interfaces. CDC is registered as the Pico stdio driver. MSC reads/writes 512-byte SD sectors.
 - The USB MSC owner and kernel filesystem owner are mutually exclusive. If the filesystem is mounted, the host receives NOT READY; once the OS unmounts, a subsequent host readiness request may claim the medium. Eject marks the medium unavailable until USB disconnect.
-- A graphical launcher, batched 5x7 ASCII font renderer, four-button navigation, SD root browser and installed-package catalog at `0:/NOVA/APPS` are wired into the main loop. Selecting an app currently reports that the runtime is pending; it does not execute the package.
+- A graphical launcher, batched 5x7 ASCII font renderer, four-button navigation, SD root browser and installed-package catalog at `0:/NOVA/APPS` are wired into the main loop. Selecting an app validates its package and reports that no runtime loader is available; it does not execute the package.
 - Battery ADC telemetry is compile-time disabled by default. Optional configuration requires a measured divider ratio and ADC GPIO; ADC readings are averaged over 16 samples.
 
 ## FAT32 / LFN configuration
