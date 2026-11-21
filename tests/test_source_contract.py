@@ -266,5 +266,16 @@ class NovaAlpha14Tests(unittest.TestCase):
         self.assertIn("nova_fs_sha256_range", fs)
         self.assertIn("src/kernel/app_package.c", cmake)
 
+    def test_cooperative_app_lifecycle_supervisor(self):
+        manager = read("src/kernel/app_manager.c")
+        header = read("include/nova/app_manager.h")
+        cmake = read("CMakeLists.txt")
+        self.assertIn("nova_task_create", manager)
+        self.assertIn("nova_app_api_v1()", manager)
+        self.assertIn("nova_app_manager_request_stop", manager)
+        self.assertIn("NOVA_APP_STOPPING", manager)
+        self.assertIn("src/kernel/app_manager.c", cmake)
+        self.assertIn("nova_app_manager_snapshot", header)
+
 if __name__ == "__main__":
     unittest.main()
