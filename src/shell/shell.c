@@ -12,7 +12,7 @@
 #include "nova/device.h"
 
 #define LINE_CAPACITY 80u
-#define NOVA_VERSION "1.2.0"
+#define NOVA_VERSION "1.3.0"
 
 typedef struct { bool led_on; uint32_t transitions; } demo_context_t;
 static demo_context_t demo_context;
