@@ -3,6 +3,7 @@
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
 #include "nova/display.h"
+#include "nova/spi_bus.h"
 #define CMD_SWRESET 0x01u
 #define CMD_SLPOUT 0x11u
 #define CMD_DISPON 0x29u
@@ -84,14 +85,21 @@ int nova_display_init(const nova_display_config_t *c) {
     gpio_init(active.reset_pin); gpio_set_dir(active.reset_pin,GPIO_OUT);
     if(active.backlight_pin>=0){gpio_init((uint)active.backlight_pin);gpio_set_dir((uint)active.backlight_pin,GPIO_OUT);gpio_put((uint)active.backlight_pin,1);}
     gpio_put(active.reset_pin,0); sleep_ms(20u); gpio_put(active.reset_pin,1); sleep_ms(120u);
+    if (nova_spi_bus_init(active.spi) != 0) return -2;
+    if (nova_spi_bus_acquire(active.spi, active.cs_pin) != 0) return -3;
+    (void)spi_set_baudrate(active.spi, active.baudrate ? active.baudrate : 12000000u);
     if(active.controller==NOVA_DISPLAY_ST7735)init_st7735();else init_ili9341();
+    nova_spi_bus_release(active.cs_pin);
     ready=true; nova_display_fill(0x0000u); return 0;
 }
 void nova_display_set_backlight(bool enabled){if(ready && active.backlight_pin>=0)gpio_put((uint)active.backlight_pin,enabled?1:0);}
 void nova_display_fill_rect(uint16_t x,uint16_t y,uint16_t w,uint16_t h,uint16_t color){
     if(!ready||!w||!h||x>=active.width||y>=active.height)return;
     uint32_t xe=(uint32_t)x+w,ye=(uint32_t)y+h;if(xe>active.width)xe=active.width;if(ye>active.height)ye=active.height;
+    if (nova_spi_bus_acquire(active.spi, active.cs_pin) != 0) return;
+    (void)spi_set_baudrate(active.spi, active.baudrate ? active.baudrate : 12000000u);
     set_window(x,y,(uint16_t)(xe-1u),(uint16_t)(ye-1u));write_color_run(color,(xe-x)*(ye-y));
+    nova_spi_bus_release(active.cs_pin);
 }
 void nova_display_fill(uint16_t color){if(ready)nova_display_fill_rect(0u,0u,active.width,active.height,color);}
 void nova_display_pixel(uint16_t x,uint16_t y,uint16_t color){nova_display_fill_rect(x,y,1u,1u,color);}
