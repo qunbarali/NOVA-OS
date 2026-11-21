@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ff.h"
+#include "diskio.h"
 #include "nova/fs.h"
 #include "nova/storage_owner.h"
 void nova_diskio_bind(nova_sd_card_t *card);
