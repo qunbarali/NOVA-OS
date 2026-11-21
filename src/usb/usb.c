@@ -25,11 +25,9 @@ void nova_usb_init(void){
 void nova_usb_task(void){tud_task();}
 void tud_mount_cb(void){
     usb_storage_owned=storage_card&&storage_card->initialized&&nova_storage_claim(NOVA_STORAGE_OWNER_USB);
-    nova_storage_set_usb_ejected(false);
 }
 void tud_umount_cb(void){
     if(usb_storage_owned){(void)nova_storage_release(NOVA_STORAGE_OWNER_USB);usb_storage_owned=false;}
-    nova_storage_set_usb_ejected(true);
 }
 void tud_msc_inquiry_cb(uint8_t lun,uint8_t vendor[8],uint8_t product[16],uint8_t revision[4]){
     (void)lun;memcpy(vendor,"NOVA    ",8u);memcpy(product,"SD CARD         ",16u);memcpy(revision,"1.0 ",4u);
