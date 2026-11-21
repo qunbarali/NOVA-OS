@@ -22,6 +22,10 @@ NOVA is an independently designed embedded operating system for Raspberry Pi Pic
 - Cortex-M0+ and Cortex-M33 context-switch and HardFault entry ports
 - USB CDC shell, timer ticks and board diagnostics
 
+## Board peripheral profile
+
+Default suggested pins: SPI0 GP18 SCK, GP19 MOSI, GP16 MISO; display CS GP13, D/C GP12, RESET GP11, backlight GP10; SD CS GP17; four active-low buttons GP2–GP5. The default panel profile is ST7735 128×160. Select ILI9341 240×320 with `-DNOVA_DISPLAY_ILI9341=ON`. Verify the actual module pin labels, panel offsets, logic voltage and board pin conflicts before connecting.
+
 ## Display modules
 Supported controller families:
 - ST7735: configure the actual module's visible width/height (commonly 128x160) and offsets. Variants may use different offsets, color order and initialization settings.
