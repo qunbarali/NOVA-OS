@@ -11,7 +11,9 @@
 #define NOVA_BATTERY_DIVIDER_DENOMINATOR 1u
 #endif
 int nova_battery_init(void){
-#if NOVA_BATTERY_DIVIDER_NUMERATOR == 0
+#if NOVA_BATTERY_ADC_GPIO < 26 || NOVA_BATTERY_ADC_GPIO > 28
+    return -2;
+#elif NOVA_BATTERY_DIVIDER_NUMERATOR == 0
     return -1;
 #else
     adc_init();adc_gpio_init(NOVA_BATTERY_ADC_GPIO);return 0;
