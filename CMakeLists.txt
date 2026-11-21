@@ -20,6 +20,7 @@ add_executable(nova_os
     src/kernel/critical.c
     src/kernel/smp_lock.c
     src/kernel/device.c
+    src/kernel/storage_owner.c
     src/kernel/memory.c
     src/kernel/ipc.c
     src/hal/board.c
