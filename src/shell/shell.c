@@ -11,6 +11,7 @@
 #include "nova/crash.h"
 #include "nova/device.h"
 #include "nova/ui.h"
+#include "nova/usb.h"
 
 #define LINE_CAPACITY 80u
 #define NOVA_VERSION "1.4.0"
@@ -171,6 +172,7 @@ void nova_shell_run(void) {
     bool overflow = false;
     nova_shell_write("NOVA> ");
     for (;;) {
+        nova_usb_task();
         nova_kernel_poll();
         nova_ui_poll();
         int ch = getchar_timeout_us(1000);
