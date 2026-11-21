@@ -3,6 +3,7 @@
 #include "nova/task.h"
 #include "nova/display.h"
 #include "nova/font.h"
+#include "nova/input.h"
 #include "nova/fs.h"
 static volatile unsigned char stop_flag;
 static int app_display_text(uint16_t x,uint16_t y,const char *text,uint16_t color){
@@ -18,6 +19,7 @@ static const nova_app_api_v1_t api={
     .struct_size=(uint32_t)sizeof(nova_app_api_v1_t),
     .uptime_ms=nova_uptime_ms,
     .display_text=app_display_text,
+    .buttons_take_events=nova_input_take_events,
     .storage_mount=nova_fs_mount,
     .storage_unmount=nova_fs_unmount,
     .storage_read=app_storage_read,
