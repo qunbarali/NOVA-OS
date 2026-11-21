@@ -103,6 +103,22 @@ void nova_display_fill_rect(uint16_t x,uint16_t y,uint16_t w,uint16_t h,uint16_t
 }
 void nova_display_fill(uint16_t color){if(ready)nova_display_fill_rect(0u,0u,active.width,active.height,color);}
 void nova_display_pixel(uint16_t x,uint16_t y,uint16_t color){nova_display_fill_rect(x,y,1u,1u,color);}
+void nova_display_blit_rgb565(uint16_t x,uint16_t y,uint16_t w,uint16_t h,const uint16_t *pixels){
+    if(!ready||!pixels||!w||!h||x>=active.width||y>=active.height)return;
+    uint32_t xe=(uint32_t)x+w,ye=(uint32_t)y+h;
+    if(xe>active.width||ye>active.height)return;
+    if(nova_spi_bus_acquire(active.spi,active.cs_pin)!=0)return;
+    (void)spi_set_baudrate(active.spi,active.baudrate?active.baudrate:12000000u);
+    set_window(x,y,(uint16_t)(xe-1u),(uint16_t)(ye-1u));
+    uint8_t bytes[96];uint32_t total=(uint32_t)w*h,offset=0u;
+    gpio_put(active.dc_pin,1);select_display();
+    while(offset<total){
+        uint32_t n=total-offset;if(n>48u)n=48u;
+        for(uint32_t i=0u;i<n;i++){uint16_t color=pixels[offset+i];bytes[i*2u]=(uint8_t)(color>>8);bytes[i*2u+1u]=(uint8_t)color;}
+        (void)spi_write_blocking(active.spi,bytes,(size_t)n*2u);offset+=n;
+    }
+    deselect_display();nova_spi_bus_release(active.cs_pin);
+}
 uint16_t nova_display_width(void){return ready?active.width:0u;}
 uint16_t nova_display_height(void){return ready?active.height:0u;}
 bool nova_display_is_ready(void){return ready;}
