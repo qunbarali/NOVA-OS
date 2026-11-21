@@ -15,6 +15,9 @@ option(NOVA_BATTERY_ENABLE "Enable battery ADC telemetry after confirming divide
 set(NOVA_BATTERY_ADC_GPIO 26 CACHE STRING "Battery divider ADC GPIO (26, 27 or 28)")
 set(NOVA_BATTERY_DIVIDER_NUMERATOR 0 CACHE STRING "Battery voltage multiplier numerator")
 set(NOVA_BATTERY_DIVIDER_DENOMINATOR 1 CACHE STRING "Battery voltage multiplier denominator")
+set(NOVA_BATTERY_LOW_MV 3500 CACHE STRING "Single-cell lithium battery low warning threshold in mV")
+set(NOVA_BATTERY_CRITICAL_MV 3300 CACHE STRING "Single-cell lithium battery critical threshold in mV")
+set(NOVA_BATTERY_FULL_MV 4200 CACHE STRING "Single-cell lithium battery full-scale estimate in mV")
 pico_sdk_init()
 add_executable(nova_os
     src/main.c
@@ -62,12 +65,14 @@ if(NOVA_BATTERY_ENABLE)
     target_compile_definitions(nova_os PRIVATE
         NOVA_BATTERY_ADC_GPIO=${NOVA_BATTERY_ADC_GPIO}
         NOVA_BATTERY_DIVIDER_NUMERATOR=${NOVA_BATTERY_DIVIDER_NUMERATOR}
-        NOVA_BATTERY_DIVIDER_DENOMINATOR=${NOVA_BATTERY_DIVIDER_DENOMINATOR})
+        NOVA_BATTERY_DIVIDER_DENOMINATOR=${NOVA_BATTERY_DIVIDER_DENOMINATOR}
+        NOVA_BATTERY_LOW_MV=${NOVA_BATTERY_LOW_MV}
+        NOVA_BATTERY_CRITICAL_MV=${NOVA_BATTERY_CRITICAL_MV}
+        NOVA_BATTERY_FULL_MV=${NOVA_BATTERY_FULL_MV})
 endif()
 target_compile_options(nova_os PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wstrict-prototypes)
 target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync hardware_spi hardware_adc tinyusb_device)
 pico_enable_stdio_usb(nova_os 0)
-pico_enable_stdio_uart(nova_os 0)
 pico_enable_stdio_uart(nova_os 0)
 pico_add_extra_outputs(nova_os)
 message(STATUS "NOVA OS version: ${PROJECT_VERSION}")
