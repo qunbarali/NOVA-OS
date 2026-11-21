@@ -9,6 +9,7 @@
 #include "nova/input.h"
 #include "nova/sd_spi.h"
 #include "nova/fs.h"
+#include "nova/usb.h"
 
 #define NOVA_SPI_SCK 18u
 #define NOVA_SPI_MOSI 19u
@@ -90,6 +91,7 @@ void nova_board_peripherals_init(void) {
     (void)nova_display_init(&display);
 
     sd_ready = nova_sd_init(&sd_card, spi0, NOVA_SPI_SCK, NOVA_SPI_MOSI, NOVA_SPI_MISO, NOVA_SD_CS, 8000000u) == 0;
+    nova_usb_bind_storage(&sd_card);
     if (sd_ready) {
         (void)nova_fs_bind(&sd_card);
         const nova_device_t storage = {
