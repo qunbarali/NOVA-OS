@@ -6,7 +6,7 @@ if(NOT PICO_SDK_PATH)
     message(FATAL_ERROR "PICO_SDK_PATH is not set. Install the Raspberry Pi Pico SDK and set PICO_SDK_PATH.")
 endif()
 include(pico_sdk_import.cmake)
-project(nova_os VERSION 1.3.0 LANGUAGES C CXX ASM)
+project(nova_os VERSION 1.4.0 LANGUAGES C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -24,6 +24,9 @@ add_executable(nova_os
     src/kernel/ipc.c
     src/hal/board.c
     src/hal/display.c
+    src/hal/font.c
+    src/ui/launcher.c
+    src/hal/battery.c
     src/hal/input.c
     src/hal/spi_bus.c
     src/hal/sd_spi.c
@@ -43,7 +46,7 @@ if(NOVA_DISPLAY_ILI9341)
     target_compile_definitions(nova_os PRIVATE NOVA_DISPLAY_ILI9341=1)
 endif()
 target_compile_options(nova_os PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wstrict-prototypes)
-target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync hardware_spi)
+target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync hardware_spi hardware_adc)
 pico_enable_stdio_usb(nova_os 1)
 pico_enable_stdio_uart(nova_os 0)
 pico_add_extra_outputs(nova_os)
