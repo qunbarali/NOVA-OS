@@ -20,7 +20,7 @@ The composite device uses a development VID/PID (0xCAFE:0x4011) and must not be 
 The ADC code is disabled unless configured with NOVA_BATTERY_ENABLE and a measured divider multiplier. The current percentage is a simple voltage estimate for a single-cell lithium battery, not a fuel-gauge measurement. It must not control charging or be used as a safety cutoff. Charging requires an external charger/power-path IC and appropriate protection. Do not connect a battery directly to an RP-series GPIO.
 
 ## Still not complete
-- Dynamic NOVA application ELF loader, relocation policy, ABI syscall boundary, memory isolation and lifecycle supervisor.
+- Dynamic NOVA application ELF loader, relocation policy, memory isolation and launching installed packages. A cooperative supervisor for trusted statically linked ABI entry points is implemented, but it is not connected to the .nova package loader.
 - Application install/catalog workflow beyond removable-drive file transfer.
 - USB host mode / Android and iPhone accessory protocol support.
 - Battery charger IC integration, fuel gauge calibration and hardware low-voltage cutoff.
