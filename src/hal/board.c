@@ -79,7 +79,7 @@ void nova_board_peripherals_init(void) {
         .sck_pin = NOVA_SPI_SCK, .tx_pin = NOVA_SPI_MOSI, .rx_pin = NOVA_SPI_MISO,
         .cs_pin = NOVA_DISPLAY_CS, .dc_pin = NOVA_DISPLAY_DC, .reset_pin = NOVA_DISPLAY_RESET,
         .backlight_pin = NOVA_DISPLAY_BACKLIGHT,
-#ifdef NOVA_DISPLAY_ILI9341
+#ifdef NOVA_DISPLAY_USE_ILI9341
         .width = 240u, .height = 320u, .x_offset = 0u, .y_offset = 0u,
         .controller = NOVA_DISPLAY_ILI9341,
 #else
