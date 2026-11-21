@@ -8,7 +8,7 @@ def read(path):
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-class NovaAlpha13Tests(unittest.TestCase):
+class NovaAlpha14Tests(unittest.TestCase):
     def test_dual_board_build_script(self):
         script = read("scripts/build-all.ps1")
         self.assertIn("Board = 'pico'", script)
@@ -109,7 +109,7 @@ class NovaAlpha13Tests(unittest.TestCase):
         self.assertIn("nova_system_ticks()", shell)
         self.assertIn("nova_kernel_timer_ready()", shell)
         self.assertIn("nova_task_fault_count()", shell)
-        self.assertIn('NOVA_VERSION "1.3.0"', shell)
+        self.assertIn('NOVA_VERSION "1.4.0"', shell)
         self.assertIn("stack_used_bytes", shell)
         self.assertIn("(high-water; limit=", shell)
 
@@ -154,7 +154,7 @@ class NovaAlpha13Tests(unittest.TestCase):
         self.assertIn("hardware_sync", cmake)
         self.assertIn("isr_hardfault", read("src/arch/armv6m/fault_entry.S"))
         self.assertIn("isr_hardfault", read("src/arch/armv8m/fault_entry.S"))
-        self.assertIn("VERSION 1.3.0", cmake)
+        self.assertIn("VERSION 1.4.0", cmake)
         self.assertIn("set(CMAKE_C_EXTENSIONS ON)", cmake)
         self.assertIn("src/arch/armv6m/call_on_stack.S", cmake)
         self.assertIn("src/arch/armv8m/call_on_stack.S", cmake)
@@ -205,6 +205,22 @@ class NovaAlpha13Tests(unittest.TestCase):
         self.assertIn("NOVA_SD_CTRL_READ_BLOCKS", header)
         self.assertIn("NOVA_SD_CTRL_WRITE_BLOCKS", header)
         self.assertIn("option(NOVA_DISPLAY_ILI9341", cmake)
+
+    def test_graphical_launcher_font_and_battery_are_integrated(self):
+        cmake = read("CMakeLists.txt")
+        main = read("src/main.c")
+        shell = read("src/shell/shell.c")
+        launcher = read("src/ui/launcher.c")
+        battery = read("src/hal/battery.c")
+        self.assertIn("src/ui/launcher.c", cmake)
+        self.assertIn("src/hal/font.c", cmake)
+        self.assertIn("nova_ui_init()", main)
+        self.assertIn("nova_ui_poll()", shell)
+        self.assertIn("NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT)", launcher)
+        self.assertIn("nova_font_draw_text", launcher)
+        self.assertIn("NOVA_BATTERY_DIVIDER_NUMERATOR", battery)
+        self.assertIn("nova_battery_read", battery)
+        self.assertIn("hardware_adc", cmake)
 
 if __name__ == "__main__":
     unittest.main()
