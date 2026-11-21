@@ -38,6 +38,24 @@ static int write_one(nova_sd_card_t *c,uint32_t sector,const uint8_t *in) {
     uint32_t wait=500000u;while(wait-- && xfer(c,0xFFu)==0u){} if(wait==0u)return -3;
     return 0;
 }
+static uint32_t read_capacity_sectors(nova_sd_card_t *c) {
+    if (command(c, 9u, 0u, 0x01u) != 0u) return 0u;
+    uint32_t wait = 100000u;
+    while (wait-- && xfer(c, 0xFFu) != SD_TOKEN_START) { }
+    if (wait == 0u) return 0u;
+    uint8_t csd[16];
+    for (size_t i = 0u; i < sizeof(csd); ++i) csd[i] = xfer(c, 0xFFu);
+    (void)xfer(c, 0xFFu); (void)xfer(c, 0xFFu);
+    if ((csd[0] >> 6) == 1u) {
+        uint32_t size = ((uint32_t)(csd[7] & 0x3Fu) << 16) | ((uint32_t)csd[8] << 8) | csd[9];
+        return (size + 1u) * 1024u;
+    }
+    uint32_t read_len = (uint32_t)(csd[5] & 0x0Fu);
+    uint32_t size = ((uint32_t)(csd[6] & 0x03u) << 10) | ((uint32_t)csd[7] << 2) | ((uint32_t)(csd[8] & 0xC0u) >> 6);
+    uint32_t mult = ((uint32_t)(csd[9] & 0x03u) << 1) | ((uint32_t)(csd[10] & 0x80u) >> 7);
+    uint64_t bytes = ((uint64_t)size + 1u) << (mult + 2u + read_len);
+    return (uint32_t)(bytes / 512u);
+}
 int nova_sd_init(nova_sd_card_t *c,spi_inst_t *spi,uint8_t sck,uint8_t tx,uint8_t rx,uint8_t cs,uint32_t baud) {
     if(!c||!spi)return -1;
     memset(c,0,sizeof(*c));c->spi=spi;c->sck_pin=sck;c->tx_pin=tx;c->rx_pin=rx;c->cs_pin=cs;c->baudrate=baud?baud:400000u;
@@ -64,12 +82,14 @@ int nova_sd_init(nova_sd_card_t *c,spi_inst_t *spi,uint8_t sck,uint8_t tx,uint8_
     uint8_t ocr[4];for(size_t i=0;i<4u;i++)ocr[i]=xfer(c,0xFFu);
     c->high_capacity=(ocr[0]&0x40u)!=0u;
     if(!c->high_capacity && command(c,SD_CMD16,512u,0x01u)!=0u){nova_spi_bus_release(cs);return -8;}
+    c->sector_count = read_capacity_sectors(c);
     nova_spi_bus_release(cs);
+    if (c->sector_count == 0u) return -9;
     (void)spi_set_baudrate(spi, c->baudrate);
-    c->initialized=true;c->sector_count=0u;return 0;
+    c->initialized=true;return 0;
 }
 int nova_sd_read(nova_sd_card_t *c,uint32_t first,uint8_t *buffer,uint32_t count) {
-    if(!c||!c->initialized||!buffer||!count||first>UINT32_MAX-count)return -1;
+    if(!c||!c->initialized||!buffer||!count||first>UINT32_MAX-count||first+count>c->sector_count)return -1;
     if(nova_spi_bus_acquire(c->spi,c->cs_pin)!=0)return -2;
     (void)spi_set_baudrate(c->spi,c->baudrate);
     int result=0;for(uint32_t i=0;i<count;i++){result=read_one(c,first+i,buffer+(size_t)i*512u);if(result)break;}
