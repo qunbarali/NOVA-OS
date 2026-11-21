@@ -6,6 +6,10 @@
 #include "nova/font.h"
 #include "nova/input.h"
 #include "nova/kernel.h"
+#include "nova/fs.h"
+#include "nova/storage_owner.h"
+#include "nova/battery.h"
+#include <stdio.h>
 
 #define COLOR_BG 0x0841u
 #define COLOR_PANEL 0x18E3u
@@ -16,13 +20,17 @@ static const char *const menu_items[]={"APPLICATIONS","FILES","USB STATUS","SYST
 static uint8_t selected;
 static char status_text[24]="SYSTEM READY";
 static bool initialized;
+static bool files_open;
+static char root_listing[256];
 static void render(void){
     uint16_t w=nova_display_width(),h=nova_display_height();
     if(!nova_display_is_ready())return;
     nova_display_fill(COLOR_BG);
     nova_display_fill_rect(0u,0u,w,18u,0x001Fu);
     nova_font_draw_text(4u,5u,"NOVA OS",COLOR_TEXT,0x001Fu);
-    nova_font_draw_text((uint16_t)(w>60u?w-60u:4u),5u,"ALPHA",COLOR_ACCENT,0x001Fu);
+    nova_battery_info_t battery;char battery_label[12]="BAT --";
+    if(nova_battery_read(&battery)) (void)snprintf(battery_label,sizeof(battery_label),"BAT %u%%",(unsigned)battery.percent);
+    nova_font_draw_text((uint16_t)(w>54u?w-54u:4u),5u,battery_label,COLOR_ACCENT,0x001Fu);
     nova_font_draw_text(5u,25u,"LAUNCHER",COLOR_ACCENT,COLOR_BG);
     uint16_t row_h=16u;
     for(uint8_t i=0u;i<4u;i++){
