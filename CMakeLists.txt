@@ -30,6 +30,8 @@ add_executable(nova_os
     src/hal/battery.c
     src/hal/diskio.c
     src/hal/fs.c
+    src/usb/usb.c
+    src/usb/usb_descriptors.c
     third_party/fatfs/ff.c
     src/hal/input.c
     src/hal/spi_bus.c
@@ -50,8 +52,9 @@ if(NOVA_DISPLAY_ILI9341)
     target_compile_definitions(nova_os PRIVATE NOVA_DISPLAY_ILI9341=1)
 endif()
 target_compile_options(nova_os PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wstrict-prototypes)
-target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync hardware_spi hardware_adc)
-pico_enable_stdio_usb(nova_os 1)
+target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync hardware_spi hardware_adc tinyusb_device)
+pico_enable_stdio_usb(nova_os 0)
+pico_enable_stdio_uart(nova_os 0)
 pico_enable_stdio_uart(nova_os 0)
 pico_add_extra_outputs(nova_os)
 message(STATUS "NOVA OS version: ${PROJECT_VERSION}")
