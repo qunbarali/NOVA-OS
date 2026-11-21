@@ -22,6 +22,7 @@ add_executable(nova_os
     src/kernel/memory.c
     src/kernel/ipc.c
     src/hal/board.c
+    src/hal/display.c
     src/shell/shell.c
 )
 if(PICO_PLATFORM STREQUAL "rp2040")
@@ -35,7 +36,7 @@ else()
 endif()
 target_include_directories(nova_os PRIVATE include)
 target_compile_options(nova_os PRIVATE -Wall -Wextra -Wshadow -Wconversion -Wstrict-prototypes)
-target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync)
+target_link_libraries(nova_os PRIVATE pico_stdlib pico_multicore hardware_gpio hardware_timer hardware_clocks hardware_watchdog hardware_sync hardware_spi)
 pico_enable_stdio_usb(nova_os 1)
 pico_enable_stdio_uart(nova_os 0)
 pico_add_extra_outputs(nova_os)
