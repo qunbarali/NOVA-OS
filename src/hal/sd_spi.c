@@ -58,8 +58,8 @@ static uint32_t read_capacity_sectors(nova_sd_card_t *c) {
 }
 int nova_sd_init(nova_sd_card_t *c,spi_inst_t *spi,uint8_t sck,uint8_t tx,uint8_t rx,uint8_t cs,uint32_t baud) {
     if(!c||!spi)return -1;
-    memset(c,0,sizeof(*c));c->spi=spi;c->sck_pin=sck;c->tx_pin=tx;c->rx_pin=rx;c->cs_pin=cs;c->baudrate=baud?baud:400000u;
-    (void)spi_init(spi,c->baudrate);gpio_set_function(sck,GPIO_FUNC_SPI);gpio_set_function(tx,GPIO_FUNC_SPI);gpio_set_function(rx,GPIO_FUNC_SPI);
+    memset(c,0,sizeof(*c));c->spi=spi;c->sck_pin=sck;c->tx_pin=tx;c->rx_pin=rx;c->cs_pin=cs;c->baudrate=baud?baud:12000000u;
+    (void)spi_init(spi,400000u);gpio_set_function(sck,GPIO_FUNC_SPI);gpio_set_function(tx,GPIO_FUNC_SPI);gpio_set_function(rx,GPIO_FUNC_SPI);
     gpio_init(cs);gpio_set_dir(cs,GPIO_OUT);gpio_put(cs,1);
     if(nova_spi_bus_init(spi)!=0)return -2;
     clocks(c,10u);
@@ -96,7 +96,7 @@ int nova_sd_read(nova_sd_card_t *c,uint32_t first,uint8_t *buffer,uint32_t count
     nova_spi_bus_release(c->cs_pin);return result;
 }
 int nova_sd_write(nova_sd_card_t *c,uint32_t first,const uint8_t *buffer,uint32_t count) {
-    if(!c||!c->initialized||!buffer||!count||first>UINT32_MAX-count)return -1;
+    if(!c||!c->initialized||!buffer||!count||first>UINT32_MAX-count||first+count>c->sector_count)return -1;
     if(nova_spi_bus_acquire(c->spi,c->cs_pin)!=0)return -2;
     (void)spi_set_baudrate(c->spi,c->baudrate);
     int result=0;for(uint32_t i=0;i<count;i++){result=write_one(c,first+i,buffer+(size_t)i*512u);if(result)break;}
