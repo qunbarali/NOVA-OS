@@ -1,5 +1,6 @@
 #ifndef NOVA_FS_H
 #define NOVA_FS_H
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "nova/sd_spi.h"
