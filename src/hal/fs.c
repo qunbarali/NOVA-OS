@@ -1,4 +1,3 @@
-#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include "ff.h"
@@ -74,7 +73,7 @@ int nova_fs_read_file(const char *path,uint8_t *buffer,size_t capacity,size_t *r
     fs_unlock();return r==FR_OK&&close_result==FR_OK?0:-2;
 }
 int nova_fs_read_range(const char *path,uint32_t offset,void *buffer,uint32_t length){
-    if(!path||(!buffer&&length)||length>UINT_MAX)return -1;
+    if(!path||(!buffer&&length))return -1;
     fs_lock();if(!mounted){fs_unlock();return -1;}
     FIL file;FRESULT r=f_open(&file,path,FA_READ);
     if(r!=FR_OK){fs_unlock();return -(int)r-10;}
