@@ -55,7 +55,7 @@ int nova_fs_list_directory(const char *path,char *output,size_t capacity){
     size_t used=0u;output[0]='\0';
     while((r=f_readdir(&dir,&info))==FR_OK&&info.fname[0]){
         if(strcmp(info.fname,".")==0||strcmp(info.fname,"..")==0)continue;
-        int n=snprintf(output+used,capacity-used,"%.20s%s\n",info.fname,(info.fattrib&AM_DIR)?"/":"");
+        int n=snprintf(output+used,capacity-used,"%.255s%s\n",info.fname,(info.fattrib&AM_DIR)?"/":"");
         if(n<0){(void)f_closedir(&dir);fs_unlock();return -2;}
         if((size_t)n>=capacity-used){used=capacity-1u;output[used]='\0';break;}
         used+=(size_t)n;
@@ -74,7 +74,7 @@ int nova_fs_read_file(const char *path,uint8_t *buffer,size_t capacity,size_t *r
     fs_unlock();return r==FR_OK&&close_result==FR_OK?0:-2;
 }
 int nova_fs_read_range(const char *path,uint32_t offset,void *buffer,uint32_t length){
-    if(!path||(!buffer&&length))return -1;
+    if(!path||(!buffer&&length)||length>UINT_MAX)return -1;
     fs_lock();if(!mounted){fs_unlock();return -1;}
     FIL file;FRESULT r=f_open(&file,path,FA_READ);
     if(r!=FR_OK){fs_unlock();return -(int)r-10;}
