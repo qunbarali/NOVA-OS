@@ -242,5 +242,17 @@ class NovaAlpha14Tests(unittest.TestCase):
         self.assertIn("tinyusb_device", cmake)
         self.assertIn("third_party/fatfs/ff.c", cmake)
 
+    def test_application_abi_services_are_exported_but_loader_is_not_claimed(self):
+        header = read("include/nova/app_abi.h")
+        source = read("src/kernel/app_abi.c")
+        cmake = read("CMakeLists.txt")
+        design = read("docs/APP_RUNTIME_DESIGN.md")
+        self.assertIn("NOVA_APP_ABI_VERSION 1u", header)
+        self.assertIn("nova_app_api_v1", source)
+        self.assertIn("nova_fs_write_atomic", source)
+        self.assertIn("stop_requested", source)
+        self.assertIn("src/kernel/app_abi.c", cmake)
+        self.assertIn("not yet complete", design)
+
 if __name__ == "__main__":
     unittest.main()
