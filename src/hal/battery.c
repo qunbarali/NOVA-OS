@@ -34,7 +34,8 @@ bool nova_battery_read(nova_battery_info_t *info){
     info->available=false;info->millivolts=0u;info->percent=0u;info->low=false;info->critical=false;return false;
 #else
     adc_select_input((uint)(NOVA_BATTERY_ADC_GPIO-26u));
-    uint32_t raw_total=0u;for(uint8_t i=0u;i<16u;i++)raw_total+=adc_read();\n    uint32_t raw=raw_total/16u;
+    uint32_t raw_total=0u;for(uint8_t i=0u;i<16u;i++)raw_total+=adc_read();
+    uint32_t raw=raw_total/16u;
     uint32_t pin_mv=(raw*3300u)/4095u;
     uint32_t battery_mv=(pin_mv*NOVA_BATTERY_DIVIDER_NUMERATOR)/NOVA_BATTERY_DIVIDER_DENOMINATOR;
     info->available=true;info->millivolts=(uint16_t)battery_mv;
