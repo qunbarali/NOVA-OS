@@ -21,6 +21,8 @@ static uint8_t selected;
 static char status_text[24]="SYSTEM READY";
 static bool initialized;
 static bool files_open;
+static bool apps_open;
+static uint8_t app_selection;
 static char root_listing[256];
 static void render(void){
     uint16_t w=nova_display_width(),h=nova_display_height();
@@ -32,7 +34,7 @@ static void render(void){
     if(nova_battery_read(&battery)){if(battery.critical)strcpy(battery_label,"BAT CRIT");else if(battery.low)strcpy(battery_label,"BAT LOW");else (void)snprintf(battery_label,sizeof(battery_label),"BAT %u%%",(unsigned)battery.percent);}
     nova_font_draw_text((uint16_t)(w>54u?w-54u:4u),5u,battery_label,COLOR_ACCENT,0x001Fu);
     if(files_open){
-        nova_font_draw_text(5u,25u,"SD FILES",COLOR_ACCENT,COLOR_BG);
+        nova_font_draw_text(5u,25u,apps_open?"INSTALLED APPS":"SD FILES",COLOR_ACCENT,COLOR_BG);
         char line[21];size_t pos=0u;uint16_t y=42u;
         while(root_listing[pos]&&y+10u<h-20u){
             size_t n=0u;
@@ -54,7 +56,7 @@ static void render(void){
     nova_display_fill_rect(0u,(uint16_t)(h-18u),w,18u,COLOR_PANEL);
     nova_font_draw_text(4u,(uint16_t)(h-13u),status_text,COLOR_MUTED,COLOR_PANEL);
 }
-void nova_ui_init(void){selected=0u;files_open=false;root_listing[0]='\0';initialized=true;render();}
+void nova_ui_init(void){selected=0u;files_open=false;apps_open=false;app_selection=0u;root_listing[0]='\0';initialized=true;render();}
 void nova_ui_set_status(const char *message){
     if(!message)return;
     size_t n=strlen(message);if(n>=sizeof(status_text))n=sizeof(status_text)-1u;
