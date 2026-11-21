@@ -141,10 +141,10 @@ static void execute(const char *line) {
             app.state == NOVA_APP_READY ? "READY" :
             app.state == NOVA_APP_RUNNING ? "RUNNING" :
             app.state == NOVA_APP_STOPPING ? "STOPPING" : "FAILED";
-        printf("Application: %s state=%s task=%u exit=%d\\n", app.name, state,
+        printf("Application: %s state=%s task=%u exit=%d\n", app.name, state,
                (unsigned)app.task_id, app.exit_code);
     } else if (!strcmp(line, "app stop")) {
-        nova_shell_write(nova_app_manager_request_stop() ? "Application stop requested. The app must cooperate.\\n" : "No active application can be stopped.\\n");
+        nova_shell_write(nova_app_manager_request_stop() ? "Application stop requested. The app must cooperate.\n" : "No active application can be stopped.\n");
     } else if (!strcmp(line, "uptime")) {
         printf("%lu ms\n", (unsigned long)nova_uptime_ms());
     } else if (!strcmp(line, "task demo")) {
