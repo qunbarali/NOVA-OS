@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "hardware/spi.h"
 #define NOVA_SD_SECTOR_SIZE 512u
+#define NOVA_SD_MAX_CAPACITY_SECTORS 67108864u
 #define NOVA_SD_CTRL_GET_INFO 1u
 #define NOVA_SD_CTRL_READ_BLOCKS 2u
 #define NOVA_SD_CTRL_WRITE_BLOCKS 3u
