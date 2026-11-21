@@ -187,6 +187,7 @@ void nova_shell_run(void) {
     for (;;) {
         nova_usb_task();
         nova_kernel_poll();
+        nova_app_manager_poll();
         nova_ui_poll();
         int ch = getchar_timeout_us(1000);
         if (ch == PICO_ERROR_TIMEOUT) { tight_loop_contents(); continue; }
