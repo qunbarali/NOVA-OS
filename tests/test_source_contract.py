@@ -195,5 +195,16 @@ class NovaAlpha13Tests(unittest.TestCase):
         self.assertIn("src/hal/spi_bus.c", cmake)
         self.assertIn("src/hal/sd_spi.c", cmake)
 
+    def test_board_wires_display_input_and_optional_sd_storage(self):
+        board = read("src/hal/board.c")
+        header = read("include/nova/sd_spi.h")
+        cmake = read("CMakeLists.txt")
+        self.assertIn("nova_display_init(&display)", board)
+        self.assertIn("nova_input_init(key_pins)", board)
+        self.assertIn("nova_sd_init(&sd_card", board)
+        self.assertIn("NOVA_SD_CTRL_READ_BLOCKS", header)
+        self.assertIn("NOVA_SD_CTRL_WRITE_BLOCKS", header)
+        self.assertIn("option(NOVA_DISPLAY_ILI9341", cmake)
+
 if __name__ == "__main__":
     unittest.main()
