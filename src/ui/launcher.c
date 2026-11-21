@@ -97,7 +97,7 @@ void nova_ui_poll(void){
             uint8_t count=0u;for(size_t i=0u;root_listing[i];i++)if(root_listing[i]=='\n')count++;
             if(app_selection+1u<count){app_selection++;changed=true;}
         }
-        if(apps_open&&(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT))){char path[320];nova_app_package_info_t info;if(selected_package_path(path,sizeof(path))&&nova_app_package_validate(path,&info)==0)strcpy(status_text,"APP VERIFIED");else strcpy(status_text,"INVALID APP PACKAGE");changed=true;}
+        if(apps_open&&(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_SELECT))){char path[320];nova_app_package_info_t info;if(selected_package_path(path,sizeof(path))&&nova_app_package_validate(path,&info)==0)strcpy(status_text,"VERIFIED - NO LOADER");else strcpy(status_text,"INVALID APP PACKAGE");changed=true;}
         if(events&NOVA_BUTTON_EVENT(NOVA_BUTTON_BACK)){
             (void)nova_fs_unmount();files_open=false;apps_open=false;strcpy(status_text,"SYSTEM READY");changed=true;
         }
