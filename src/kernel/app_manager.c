@@ -33,7 +33,7 @@ int nova_app_launch(const char *name,nova_app_entry_v1_t entry){
     if(manager.task_id==NOVA_TASK_ID_INVALID){manager.entry=NULL;manager.state=NOVA_APP_FAILED;manager.exit_code=-4;return -4;}
     return 0;
 }
-bool nova_app_request_stop(void){
+bool nova_app_manager_request_stop(void){
     if(manager.state!=NOVA_APP_RUNNING&&manager.state!=NOVA_APP_READY)return false;
     manager.state=NOVA_APP_STOPPING;nova_app_request_stop();return true;
 }
