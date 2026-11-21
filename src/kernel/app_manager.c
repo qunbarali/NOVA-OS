@@ -22,6 +22,7 @@ static nova_task_result_t app_task(void *context){
 }
 int nova_app_launch(const char *name,nova_app_entry_v1_t entry){
     if(!name||!entry||(manager.state!=NOVA_APP_STOPPED&&manager.state!=NOVA_APP_FAILED))return -1;
+    if(manager.state==NOVA_APP_FAILED&&manager.task_id!=NOVA_TASK_ID_INVALID){(void)nova_task_terminate(manager.task_id);manager.task_id=NOVA_TASK_ID_INVALID;}
     const nova_app_api_v1_t *api=nova_app_api_v1();
     if(!api||api->abi_version!=NOVA_APP_ABI_VERSION||api->struct_size<sizeof(nova_app_api_v1_t))return -2;
     size_t length=strlen(name);if(length==0u||length>=sizeof(manager.name))return -3;
