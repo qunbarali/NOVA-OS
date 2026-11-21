@@ -1,0 +1,1 @@
+FatFs R0.16 source files vendored from the rusefi/rusefi repository at commit 4e068e8a73e94f9922c2f0907667d8ba77f9bfc9. FatFs is copyright (C) 2025, ChaN. See the upstream FatFs distribution and license terms before redistribution or commercial use. This repository does not claim ownership of FatFs.
