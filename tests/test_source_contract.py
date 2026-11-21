@@ -254,5 +254,17 @@ class NovaAlpha14Tests(unittest.TestCase):
         self.assertIn("src/kernel/app_abi.c", cmake)
         self.assertIn("not yet complete", design)
 
+    def test_device_app_package_validator_checks_hash_and_target(self):
+        package = read("src/kernel/app_package.c")
+        fs = read("src/hal/fs.c")
+        sha = read("src/kernel/sha256.c")
+        cmake = read("CMakeLists.txt")
+        self.assertIn("NOVA_APP_PACKAGE_HEADER_SIZE", package)
+        self.assertIn("NOVA_APP_ABI_VERSION", package)
+        self.assertIn("nova_fs_sha256_range", package)
+        self.assertIn("nova_sha256_update", sha)
+        self.assertIn("nova_fs_sha256_range", fs)
+        self.assertIn("src/kernel/app_package.c", cmake)
+
 if __name__ == "__main__":
     unittest.main()
