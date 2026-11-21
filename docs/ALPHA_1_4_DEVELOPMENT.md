@@ -9,10 +9,11 @@
 - SDHC block addressing and SDSC byte addressing.
 - Bounds checks against detected card sector count.
 - CMake includes the SPI bus and SD block layer.
-- Source-contract checks cover the SPI/SD interfaces.
+- Board startup now selects ST7735 by default or ILI9341 through `NOVA_DISPLAY_ILI9341`, initializes the four-button GPIO module, attempts SD initialization and registers a detected card as `sd0` with block-control commands.
+- Source-contract checks cover the SPI/SD interfaces and board peripheral wiring.
 
 ## Hardware target
-The requested storage target is SDHC/FAT32 cards up to 32 GB. The current code is a low-level SPI block driver, not a FAT32 filesystem. Card compatibility, SPI speed, power integrity and write behavior must be validated with the actual module and card.
+The requested storage target is SDHC/FAT32 cards up to 32 GB. The current code is a low-level SPI block driver with CSD capacity detection, not a FAT32 filesystem. Card compatibility, SPI speed, power integrity and write behavior must be validated with the actual module and card.
 
 Suggested shared SPI0 wiring (confirm module pin labels):
 - GP18 SCK, GP19 MOSI, GP16 MISO
