@@ -36,6 +36,8 @@ void tud_msc_inquiry_cb(uint8_t lun,uint8_t vendor[8],uint8_t product[16],uint8_
 }
 bool tud_msc_test_unit_ready_cb(uint8_t lun){
     (void)lun;
+    if(!usb_storage_owned&&storage_card&&storage_card->initialized)
+        usb_storage_owned=nova_storage_claim(NOVA_STORAGE_OWNER_USB);
     if(!usb_storage_owned||!storage_card||!storage_card->initialized||usb_ejected){
         tud_msc_set_sense(0u,0x02u,0x3Au,0x00u);return false;
     }
